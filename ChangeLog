@@ -1,0 +1,17 @@
+2004-08-04  Manuel Amador  <rudd-o@amautacorp.com>
+	* fixed autotools build
+	* updated RPM to suit
+
+2004-08-01  Manuel Amador  <rudd-o@amautacorp.com>
+	* use system() to avoid zombie processes
+	* fixed read_ups_config bug
+
+2004-07-30  Peter Williams  <peter@newton.cx>
+
+	* configure.ac: Created this file
+	* Makefile.am: Same
+	* NEWS: same
+	* ChangeLog: same
+	* AUTHORS: same
+	* autogen.sh: same
+

@@ -1,6 +1,6 @@
 # $Id$
 
-%define ver 0.4
+%define ver 0.5
 %define rel 1
 %define prefix /usr
 
@@ -64,11 +64,12 @@ Monitor de SAI necesita el servicio Network UPS Tools (nut).
 rm -rf $RPM_BUILD_ROOT
 
 %setup
+./configure --prefix=/usr
 
 %build
 
 %install
-PREFIX=%prefix make install
+make DESTDIR=$RPM_BUILD_ROOT install
 
 
 

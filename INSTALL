@@ -1,0 +1,17 @@
+Installation of UPS monitor is quite simple.
+
+If you prefer to perform a source install, just
+
+  ./configure --prefix=/the/desired/base/path
+  make install
+
+That's it.
+
+RPM-based installs can be much more gratifying, though.
+Simply get the RPM and install it, or build the rpm
+by issuing
+
+  ./configure
+  make rpm
+
+That's it!

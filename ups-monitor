@@ -5,20 +5,18 @@ import pygtk
 pygtk.require("2.0")
 import gtk
 import gtk.glade
-#import gnome
-#import gnome.ui
-from inspect import *
-import inspect
-from os import path
-import errno
-from string import *
-from socket import *
-import re
+import gnome
+import gnome.ui
+from os import path, spawnl, popen, system, P_NOWAIT, umask
 from threading import Thread
 from time import sleep
 from select import select
+from string import *
+from socket import *
+import errno
+import re
 
-debug = True
+debug = False
 
 def debug_print(something):
 	if debug:
@@ -26,7 +24,7 @@ def debug_print(something):
 
 def get_shared_path():
 	testfile = 'version'
-	sharedirs = [".",os.path.join(os.path.dirname(sys.argv[0]),"../share/ups-monitor")]
+	sharedirs = [".",path.join(path.dirname(sys.argv[0]),"../share/ups-monitor")]
 	sharepath = None
 	for sharedir in sharedirs:
 		fname = path.join(path.abspath(sharedir),testfile)
@@ -60,7 +58,7 @@ class NoMailClientError(AuxiliaryProgramNotFound):
 def get_full_path_to_program(program):
 	possible_browsers = [program]
 	for browser in possible_browsers:
-		command = os.popen("LC_ALL=C which " + browser + " 2> /dev/null")
+		command = popen("LC_ALL=C which " + browser + " 2> /dev/null")
 		r = command.readlines()
 		command.close()
 		if r:
@@ -72,7 +70,7 @@ def get_full_path_to_program(program):
 def get_browser():
 	possible_browsers = ["gnome-open","mozilla","firefox","konqueror"]
 	for browser in possible_browsers:
-		command = os.popen("LC_ALL=C which " + browser + " 2> /dev/null")
+		command = popen("LC_ALL=C which " + browser + " 2> /dev/null")
 		r = command.readlines()
 		command.close()
 		if r:
@@ -83,7 +81,7 @@ def get_browser():
 def get_mail_client():
 	possible_clients = ["gnome-open","evolution","kmail"]
 	for client in possible_clients:
-		command = os.popen("LC_ALL=C which " + client + " 2> /dev/null")
+		command = popen("LC_ALL=C which " + client + " 2> /dev/null")
 		r = command.readlines()
 		command.close()
 		if r:
@@ -95,13 +93,13 @@ def open_webpage(url):
 	browser = get_browser()
 	if browser is None:
 		raise NoBrowserError, "No suitable browser found"
-	os.system( browser + " '" + url + "'" )
+	system( browser + " '" + url + "'" )
 
 def compose_mail(url):
 	client = get_mail_client()
 	if client is None:
 		raise NoMailClientError, "No suitable mail client found"
-	os.system( client  + " 'mailto:" + url + "'" )
+	system( client  + " 'mailto:" + url + "'" )
 	
 
 
@@ -125,10 +123,12 @@ def read_ups_config(file):
 			[currentups] = r.findall(line2)
 			upses[currentups] = []
 		elif currentups:
-			key, value = split(line2,"=")
-			strip(key)
-			strip(value)
-			upses[currentups] = upses[currentups] + [ { key : value } ]
+			strip(line2)
+			if len(line2) > 0:
+				key, value = split(line2,"=",1)
+				strip(key)
+				strip(value)
+				upses[currentups] = upses[currentups] + [ { key : value } ]
 		
 	return upses
 	
@@ -262,6 +262,8 @@ class UPS:
 			address = address + "@localhost"
 		self.address = address
 		self.ups_name , self.host = split(address,"@")
+		self.username = username
+		self.password = password
 		
 	def check_ups_exists(self):
 		self.poll()
@@ -289,8 +291,8 @@ class UPS:
  			debug_print( e)
 			raise InvalidAddressError, "Could not connect to the specified UPS address"
 
-		if username is not None:
-			self.authenticate(username,password)
+		if self.username is not None:
+			self.authenticate(self.username,self.password)
 
 		self.check_ups_exists()
 
@@ -690,13 +692,13 @@ class UPSMonitor (gtk.glade.XML):
 	def save_session(self):
 		program = get_full_path_to_program("dcop")
 		if program:
-			os.spawnl(os.P_NOWAIT,program,"dcop","ksmserver","ksmserver","saveCurrentSession")
+			system("dcop ksmserver ksmserver saveCurrentSession")
 		program = get_full_path_to_program("gnome-session-save")
 		if program:
-			os.spawnl(os.P_NOWAIT,program,"gnome-session-save")
+			system("gnome-session-save")
 	
 	def get_version(self):
-		file = os.path.join(self.sharepath,"version")
+		file = path.join(self.sharepath,"version")
 		f = open(file)
 		lines = f.readlines()
 		version = strip(lines[0])
@@ -728,14 +730,8 @@ class UPSMonitor (gtk.glade.XML):
 		
 		self.get_widget("label_about").set_markup(title + "\n" + version + "\n" + subtitle)
 		
-		# prepare the prefs window
-		
-		# make the combo useful (actually, create it)
-		
-		#finally, the prefs dialog should always cover the main window
 		self.get_widget("prefs_window").set_transient_for(self.get_widget("window"))
 
-#	        self.applet_window.connect("destroy", self.exit_applet)
 		self.tray_icon = UPSTrayMonitor(self)
 
 	def disable_display(self):
@@ -866,7 +862,7 @@ class UPSMonitor (gtk.glade.XML):
 	def save_config(self):
 		debug_print( "Saving config")
 		fn = path.expanduser("~") + "/.ups-monitor.conf"
-		os.umask(077)
+		umask(077)
 		f = open(fn,"w")
 		if self.ups is not None:
 			debug_print("Saving UPS configuration")
@@ -1169,36 +1165,36 @@ class UPSMonitor (gtk.glade.XML):
 			pass
 		
 		
-		
+
+def main():
+
+	if len(sys.argv) > 1:
+		upsaddress = sys.argv[1]
+	else:
+		upsaddress = None
+
+	app = UPSMonitor(get_shared_path())
 
 
-
-upsaddress = None
-if len(sys.argv) > 1:
-	upsaddress = sys.argv[1]
-
-
-app = UPSMonitor(get_shared_path())
-
-
-if upsaddress:
-	app.monitor(upsaddress,None,None)
-else:
-	try:
-		app.monitor_last_ups()
-	except NoLastUPSError, e:
-		localupses = []
+	if upsaddress:
+		app.monitor(upsaddress,None,None)
+	else:
 		try:
-			localupses = read_ups_config("/etc/ups/ups.conf").keys()
-		except Exception, e:
-			pass
-		if len(localupses) == 1:
-			app.monitor(localupses[0] + "@localhost",None,None)
+			app.monitor_last_ups()
+		except NoLastUPSError, e:
+			try:
+				localupses = read_ups_config("/etc/ups/ups.conf").keys()
+				if len(localupses) == 1:
+					app.monitor(localupses[0] + "@localhost",None,None)
+			except OSError, e:
+				debug_print("No ups.conf")
+			except IOError, e:
+				debug_print("No ups.conf")
+			
+	gtk.threads_init()
+
+	gtk.main()
 
 
-
-
-
-gtk.threads_init()
-
-gtk.mainloop()
+if __name__ == "__main__":
+	main()

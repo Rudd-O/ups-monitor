@@ -1,5 +1,6 @@
 * rewrite autodetection code to connect to local host instead of reading
 /etc/ups/ups.conf
+(seems to work mostly nowadays, though)
 
 * find out whether the UPS is a master for the current machine, so as to avoid unnecessary session saves
 
@@ -24,10 +25,6 @@
 
 * make main window titlebar more descriptive
 
-* auto-toolize?
-
 * make exceptions show in own window instead of standard error
 
 * find a more portable way (ideally, in Python) to do tray icons than eggtrayiconmodule.so
-
-* solve the defunct processes problem when lights go out and dcop and gnome-save-session stay defunct
