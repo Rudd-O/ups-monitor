@@ -618,9 +618,11 @@ class UPSMonitor (gtk.glade.XML):
 		self.sharepath = sharepath
 		gtk.glade.XML.__init__(self,path.join(self.sharepath,'ups-monitor.glade'))
 		self.window = self.get_widget("window")
+
+		self.load_config()
 		self.prepare_widgets()
 		self.connect_signals()
-		self.load_config()
+		self.setup_session_management()
 		if self.config["visible"] is True:
 			self.window.show()
 	
@@ -1099,6 +1101,16 @@ class UPSMonitor (gtk.glade.XML):
 	def open_gpl(self,caller = None):
 		self.run_uri("http://www.fsf.org/copyleft/gpl.txt")
 		
+	def setup_session_management(self):
+		self.smclient = gnome.ui.Client()
+
+		self.smclient.connect_object("save-yourself",self.save_yourself,None)
+
+		self.smclient.set_program("ups-monitor")
+		self.smclient.connect_to_session_manager()
+
+	def save_yourself(self,*args):
+		self.save_config()
 		
 
 def main():

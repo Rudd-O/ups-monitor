@@ -1,6 +1,6 @@
 # $Id$
 
-%define ver 0.8.1
+%define ver 0.8.2
 %define rel 1
 %define prefix /usr
 
@@ -10,7 +10,7 @@ Name:           ups-monitor
 Vendor:         Amauta
 Version:        %ver
 Release:        %rel
-Copyright:      Amautacorp S.A. 
+Copyright:      Manuel Amador (Rudd-O)
 Group:          System/Monitoring
 Source:         %{name}-%ver.tar.gz
 URL:            http://www.amautacorp.com/staff/Rudd-O/projects/ups-front/
@@ -37,6 +37,9 @@ Monitor de SAI necesita el servicio Network UPS Tools (nut).
 
 
 %changelog
+* Fri Mar 21 2005 Manuel Amador <rudd-o@amautacorp.com> 0.8.2-1
+- Session management support
+
 * Fri Mar 11 2005 Manuel Amador <rudd-o@amautacorp.com> 0.8.1-1
 - Using GNOME support functions instead of rolling my own.
 - Build system improved

@@ -1,3 +1,8 @@
+2005-03-21  Manuel Amador <rudd-o@amautacorp.com>
+	* ups-monitor-0.8.1:
+	
+	  + Use session management to save configuration upon logout.
+
 2005-03-11  Manuel Amador <rudd-o@amautacorp.com>
 	* ups-monitor-0.8.1:
 	

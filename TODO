@@ -1,3 +1,8 @@
+* make save config when connection to X server is lost, so hidden state
+  gets preserved across session restarts
+
+* make process GNOME cmdline args
+
 * rewrite autodetection code to connect to local host instead of reading
 /etc/ups/ups.conf
 (seems to work mostly nowadays, though)
