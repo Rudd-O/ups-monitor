@@ -23,3 +23,5 @@
 * use sys.path construct (augmenting it at runtime to find the UPS monitor share directory), to load images and all shared information
 
 * make main window titlebar more descriptive
+
+* auto-toolize?
