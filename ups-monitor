@@ -1184,7 +1184,7 @@ def main():
 		if sys.argv[counter][0:1] != "-":
 			upsaddress = sys.argv[counter]
 			break;
-		if sys.argv[counter] == "--sm-client-id":
+		if sys.argv[counter][0:4] == "--sm":
 			counter += 1
 		if sys.argv[counter] == "--screen":
 			counter += 1
