@@ -1,6 +1,6 @@
 # $Id$
 
-%define ver 0.7
+%define ver 0.8
 %define rel 1
 %define prefix /usr
 

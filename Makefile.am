@@ -1,5 +1,7 @@
 # Process with automake to create Makefile.in
 
+SUBDIRS = eggtray
+
 pixmapsdir = $(datadir)/pixmaps
 docdir = $(datadir)/doc/$(PACKAGE)-$(VERSION)
 appsdir = $(datadir)/applications
@@ -23,7 +25,6 @@ pkgdata_DATA = \
 	remaining-time.png \
 	ups-monitor.png \
 	ups-monitor-small.png \
-	eggtrayiconmodule.so \
 	warning-icon.png
 
 doc_DATA = \

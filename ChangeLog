@@ -1,3 +1,7 @@
+2005-01-27  Arnaud Quette  <arnaud.quette@mgeups.com>
+	* make eggtrayiconmodule.so compilable so that
+	  ups-monitor packages are portable
+
 2004-12-14  Manuel Amador  <rudd-o@amautacorp.com>
 	* Fixed session management cmdline param sm-session-prefix
 

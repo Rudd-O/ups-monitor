@@ -18,5 +18,24 @@ fi
 
 AC_SUBST(DESKTOP_FILE_INSTALL)
 
-AC_CONFIG_FILES([Makefile])
+dnl *************************************************
+dnl gettext support
+dnl *************************************************
+
+GETTEXT_PACKAGE=ups-monitor
+AC_SUBST(GETTEXT_PACKAGE)
+dnl AC_DEFINE_UNQUOTED(GETTEXT_PACKAGE,"$GETTEXT_PACKAGE",
+dnl		[the gettext domain])
+
+dnl Needed to build eggtray.so lib
+dnl AC_PROG_LIBTOOL
+
+dnl ===============================================
+dnl Checks for eggtray library dependancies
+dnl ===============================================
+PKG_CHECK_MODULES(EGG, gtk+-2.0 >= 2.4.0 libgnomeui-2.0 >=  2.2.0 pygtk-2.0 >= 2.4.0)
+AC_SUBST(EGG_LIBS)
+AC_SUBST(EGG_CFLAGS)
+
+AC_CONFIG_FILES([Makefile eggtray/Makefile])
 AC_OUTPUT
