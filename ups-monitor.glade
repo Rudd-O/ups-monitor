@@ -196,6 +196,9 @@
 				  <property name="yalign">0.5</property>
 				  <property name="xpad">0</property>
 				  <property name="ypad">0</property>
+				  <accessibility>
+				    <atkrelation target="label_manufacturer" type="label-for"/>
+				  </accessibility>
 				</widget>
 				<packing>
 				  <property name="left_attach">0</property>
@@ -220,6 +223,9 @@
 				  <property name="yalign">0.5</property>
 				  <property name="xpad">0</property>
 				  <property name="ypad">0</property>
+				  <accessibility>
+				    <atkrelation target="label_model" type="label-for"/>
+				  </accessibility>
 				</widget>
 				<packing>
 				  <property name="left_attach">0</property>
@@ -244,6 +250,9 @@
 				  <property name="yalign">0.5</property>
 				  <property name="xpad">0</property>
 				  <property name="ypad">0</property>
+				  <accessibility>
+				    <atkrelation target="label_serial" type="label-for"/>
+				  </accessibility>
 				</widget>
 				<packing>
 				  <property name="left_attach">0</property>
@@ -395,6 +404,9 @@
 				  <property name="yalign">0.5</property>
 				  <property name="xpad">0</property>
 				  <property name="ypad">0</property>
+				  <accessibility>
+				    <atkrelation target="label_power_source" type="label-for"/>
+				  </accessibility>
 				</widget>
 				<packing>
 				  <property name="left_attach">0</property>
@@ -442,6 +454,9 @@
 				  <property name="yalign">0.5</property>
 				  <property name="xpad">0</property>
 				  <property name="ypad">0</property>
+				  <accessibility>
+				    <atkrelation target="label_battery_voltage" type="label-for"/>
+				  </accessibility>
 				</widget>
 				<packing>
 				  <property name="left_attach">0</property>
@@ -513,6 +528,9 @@
 				  <property name="yalign">0.5</property>
 				  <property name="xpad">0</property>
 				  <property name="ypad">0</property>
+				  <accessibility>
+				    <atkrelation target="label_battery_status" type="label-for"/>
+				  </accessibility>
 				</widget>
 				<packing>
 				  <property name="left_attach">0</property>
@@ -537,6 +555,9 @@
 				  <property name="yalign">0.5</property>
 				  <property name="xpad">0</property>
 				  <property name="ypad">0</property>
+				  <accessibility>
+				    <atkrelation target="label_ups_status" type="label-for"/>
+				  </accessibility>
 				</widget>
 				<packing>
 				  <property name="left_attach">0</property>
@@ -705,6 +726,9 @@
 			  <property name="yalign">0.5</property>
 			  <property name="xpad">0</property>
 			  <property name="ypad">0</property>
+			  <accessibility>
+			    <atkrelation target="meter_remaining_time" type="label-for"/>
+			  </accessibility>
 			</widget>
 			<packing>
 			  <property name="type">label_item</property>
@@ -793,6 +817,9 @@
 			  <property name="yalign">0.5</property>
 			  <property name="xpad">0</property>
 			  <property name="ypad">0</property>
+			  <accessibility>
+			    <atkrelation target="meter_ups_load" type="label-for"/>
+			  </accessibility>
 			</widget>
 			<packing>
 			  <property name="type">label_item</property>
@@ -881,6 +908,9 @@
 			  <property name="yalign">0.5</property>
 			  <property name="xpad">0</property>
 			  <property name="ypad">0</property>
+			  <accessibility>
+			    <atkrelation target="meter_remaining_time" type="label-for"/>
+			  </accessibility>
 			</widget>
 			<packing>
 			  <property name="type">label_item</property>
@@ -980,7 +1010,7 @@
 			  <child>
 			    <widget class="GtkLabel" id="label60">
 			      <property name="visible">True</property>
-			      <property name="label" translatable="yes">_About...</property>
+			      <property name="label" translatable="yes">_About</property>
 			      <property name="use_underline">True</property>
 			      <property name="use_markup">False</property>
 			      <property name="justify">GTK_JUSTIFY_LEFT</property>
@@ -1159,6 +1189,9 @@
 	  <property name="active">True</property>
 	  <property name="inconsistent">False</property>
 	  <property name="draw_indicator">True</property>
+	  <accessibility>
+	    <atkrelation target="ups_address" type="label-for"/>
+	  </accessibility>
 	  <signal name="toggled" handler="process_radio_network_upses" last_modification_time="Sat, 24 Jul 2004 10:49:36 GMT"/>
 	</widget>
 	<packing>
@@ -1485,7 +1518,7 @@
 </widget>
 
 <widget class="GtkWindow" id="error_dialog">
-  <property name="title" translatable="yes">Error</property>
+  <property name="title" translatable="yes"></property>
   <property name="type">GTK_WINDOW_TOPLEVEL</property>
   <property name="window_position">GTK_WIN_POS_NONE</property>
   <property name="modal">True</property>
@@ -1503,7 +1536,7 @@
       <property name="border_width">12</property>
       <property name="visible">True</property>
       <property name="homogeneous">False</property>
-      <property name="spacing">12</property>
+      <property name="spacing">24</property>
 
       <child>
 	<widget class="GtkHBox" id="hbox13">
@@ -1517,7 +1550,7 @@
 	      <property name="stock">gtk-dialog-error</property>
 	      <property name="icon_size">6</property>
 	      <property name="xalign">0.5</property>
-	      <property name="yalign">0.5</property>
+	      <property name="yalign">0</property>
 	      <property name="xpad">0</property>
 	      <property name="ypad">0</property>
 	    </widget>
@@ -1574,7 +1607,7 @@
 	      <property name="visible">True</property>
 	      <property name="can_focus">True</property>
 	      <property name="has_focus">True</property>
-	      <property name="label">gtk-close</property>
+	      <property name="label">gtk-ok</property>
 	      <property name="use_stock">True</property>
 	      <property name="relief">GTK_RELIEF_NORMAL</property>
 	      <property name="focus_on_click">True</property>
@@ -1593,10 +1626,10 @@
 </widget>
 
 <widget class="GtkWindow" id="info_dialog">
-  <property name="title" translatable="yes">Information</property>
+  <property name="title" translatable="yes"></property>
   <property name="type">GTK_WINDOW_TOPLEVEL</property>
   <property name="window_position">GTK_WIN_POS_NONE</property>
-  <property name="modal">False</property>
+  <property name="modal">True</property>
   <property name="resizable">False</property>
   <property name="destroy_with_parent">False</property>
   <property name="decorated">True</property>
@@ -1611,7 +1644,7 @@
       <property name="border_width">12</property>
       <property name="visible">True</property>
       <property name="homogeneous">False</property>
-      <property name="spacing">12</property>
+      <property name="spacing">24</property>
 
       <child>
 	<widget class="GtkHBox" id="hbox14">
@@ -1625,7 +1658,7 @@
 	      <property name="stock">gtk-dialog-info</property>
 	      <property name="icon_size">6</property>
 	      <property name="xalign">0.5</property>
-	      <property name="yalign">0.5</property>
+	      <property name="yalign">0</property>
 	      <property name="xpad">0</property>
 	      <property name="ypad">0</property>
 	    </widget>
@@ -1682,7 +1715,7 @@
 	      <property name="visible">True</property>
 	      <property name="can_focus">True</property>
 	      <property name="has_focus">True</property>
-	      <property name="label">gtk-close</property>
+	      <property name="label">gtk-ok</property>
 	      <property name="use_stock">True</property>
 	      <property name="relief">GTK_RELIEF_NORMAL</property>
 	      <property name="focus_on_click">True</property>
@@ -1757,6 +1790,9 @@ A graphical application to monitor the status of your UPS</property>
 	      <property name="yalign">0.5</property>
 	      <property name="xpad">0</property>
 	      <property name="ypad">0</property>
+	      <accessibility>
+		<atkproperty name="AtkObject::accessible_name" translatable="yes">About UPS monitor</atkproperty>
+	      </accessibility>
 	    </widget>
 	    <packing>
 	      <property name="padding">0</property>
@@ -1794,6 +1830,9 @@ A graphical application to monitor the status of your UPS</property>
 	      <property name="yalign">0.5</property>
 	      <property name="xpad">0</property>
 	      <property name="ypad">0</property>
+	      <accessibility>
+		<atkrelation target="button_email" type="label-for"/>
+	      </accessibility>
 	    </widget>
 	    <packing>
 	      <property name="left_attach">0</property>
@@ -1818,6 +1857,9 @@ A graphical application to monitor the status of your UPS</property>
 	      <property name="yalign">0.5</property>
 	      <property name="xpad">0</property>
 	      <property name="ypad">0</property>
+	      <accessibility>
+		<atkrelation target="button_author" type="label-for"/>
+	      </accessibility>
 	    </widget>
 	    <packing>
 	      <property name="left_attach">0</property>
@@ -1842,6 +1884,9 @@ A graphical application to monitor the status of your UPS</property>
 	      <property name="yalign">0.5</property>
 	      <property name="xpad">0</property>
 	      <property name="ypad">0</property>
+	      <accessibility>
+		<atkrelation target="button_website" type="label-for"/>
+	      </accessibility>
 	    </widget>
 	    <packing>
 	      <property name="left_attach">0</property>
@@ -1866,6 +1911,9 @@ A graphical application to monitor the status of your UPS</property>
 	      <property name="yalign">0.5</property>
 	      <property name="xpad">0</property>
 	      <property name="ypad">0</property>
+	      <accessibility>
+		<atkrelation target="hbox_license" type="label-for"/>
+	      </accessibility>
 	    </widget>
 	    <packing>
 	      <property name="left_attach">0</property>
@@ -1878,7 +1926,7 @@ A graphical application to monitor the status of your UPS</property>
 	  </child>
 
 	  <child>
-	    <widget class="GtkHBox" id="hbox30">
+	    <widget class="GtkHBox" id="hbox_license">
 	      <property name="visible">True</property>
 	      <property name="homogeneous">False</property>
 	      <property name="spacing">0</property>
@@ -2284,10 +2332,10 @@ A graphical application to monitor the status of your UPS</property>
 </widget>
 
 <widget class="GtkWindow" id="warning_dialog">
-  <property name="title" translatable="yes">Warning</property>
+  <property name="title" translatable="yes"></property>
   <property name="type">GTK_WINDOW_TOPLEVEL</property>
   <property name="window_position">GTK_WIN_POS_NONE</property>
-  <property name="modal">False</property>
+  <property name="modal">True</property>
   <property name="resizable">False</property>
   <property name="destroy_with_parent">False</property>
   <property name="decorated">True</property>
@@ -2302,7 +2350,7 @@ A graphical application to monitor the status of your UPS</property>
       <property name="border_width">12</property>
       <property name="visible">True</property>
       <property name="homogeneous">False</property>
-      <property name="spacing">12</property>
+      <property name="spacing">24</property>
 
       <child>
 	<widget class="GtkHBox" id="hbox32">
@@ -2316,7 +2364,7 @@ A graphical application to monitor the status of your UPS</property>
 	      <property name="stock">gtk-dialog-warning</property>
 	      <property name="icon_size">6</property>
 	      <property name="xalign">0.5</property>
-	      <property name="yalign">0.5</property>
+	      <property name="yalign">0</property>
 	      <property name="xpad">0</property>
 	      <property name="ypad">0</property>
 	    </widget>
@@ -2373,7 +2421,7 @@ A graphical application to monitor the status of your UPS</property>
 	      <property name="visible">True</property>
 	      <property name="can_focus">True</property>
 	      <property name="has_focus">True</property>
-	      <property name="label">gtk-close</property>
+	      <property name="label">gtk-ok</property>
 	      <property name="use_stock">True</property>
 	      <property name="relief">GTK_RELIEF_NORMAL</property>
 	      <property name="focus_on_click">True</property>
