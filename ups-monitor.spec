@@ -39,6 +39,7 @@ Monitor de SAI necesita el servicio Network UPS Tools (nut).
 %changelog
 * Fri Mar 21 2005 Manuel Amador <rudd-o@amautacorp.com> 0.8.2-1
 - Session management support
+- SM support for saving sessions
 
 * Fri Mar 11 2005 Manuel Amador <rudd-o@amautacorp.com> 0.8.1-1
 - Using GNOME support functions instead of rolling my own.
