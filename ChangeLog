@@ -1,6 +1,24 @@
+2005-03-11  Manuel Amador <rudd-o@amautacorp.com>
+	* ups-monitor-0.8.1:
+	
+	  + Using GNOME support functions instead of rolling my own.
+	  + Build system improved
+
+
+2005-02-07  Arnaud Quette  <arnaud.quette@mgeups.com>
+	* ups-monitor-0.8.1:
+	
+	  + Change version numbering to x.y.z (0.8.1)
+	  + Correct eggtray install/uninstall/clean rules
+	  + Add a basic manpage
+	  + Add a bzdist rule to generate tar.bz2 archives
+	  + Modified the Changelog format to be more meaningful
+
 2005-01-27  Arnaud Quette  <arnaud.quette@mgeups.com>
-	* make eggtrayiconmodule.so compilable so that
-	  ups-monitor packages are portable
+	* ups-monitor-0.8:
+	
+	  + make eggtrayiconmodule.so compilable so that
+	    ups-monitor packages are portable
 
 2004-12-14  Manuel Amador  <rudd-o@amautacorp.com>
 	* Fixed session management cmdline param sm-session-prefix

@@ -35,12 +35,16 @@ doc_DATA = \
 	ChangeLog \
 	NEWS
 
+man_MANS = ups-monitor.1
+
 # Why do these need to be explicitly put in EXTRA_DIST?
 
 EXTRA_DIST = \
 	$(bin_SCRIPTS) \
 	$(pkgdata_DATA) \
 	$(pixmaps_DATA) \
+	$(man_MANS) \
+	eggtrayiconmodule.so \
 	ups-monitor.desktop ups-monitor.spec autogen.sh
 
 install-data-hook:
@@ -50,3 +54,5 @@ install-data-hook:
 rpm: dist
 	rpmbuild -ta $(PACKAGE)-$(VERSION).tar.gz
 
+bzdist: dist
+	gunzip -c $(PACKAGE)-$(VERSION).tar.gz | bzip2 > $(PACKAGE)-$(VERSION).tar.bz2

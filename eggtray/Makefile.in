@@ -47,7 +47,7 @@ export PREFIX
 export MANPATH
 
 all:: $(OBJECTS)
-#	cp $(OBJECTS) ..
+	cp $(OBJECTS) ..
 
 # default compile rule:
 %.pyc: %.py
@@ -67,6 +67,11 @@ install:: all $(DIRS)
 	$(INSTALL_BIN) $(PYLIBFILES) $(RHNSHARE_DIR)/
 	$(descend-subdirs)
 
+uninstall: 
+	if test -f $(RHNSHARE_DIR)/$(PYLIBFILES); then \
+		rm -f $(RHNSHARE_DIR)/$(PYLIBFILES); \
+	fi
+
 %.o : %.c
 	$(CC) -fPIC $(CFLAGS) -c -o $@ $<
 %.so : %.o
@@ -79,8 +84,10 @@ distdir: $(DISTFILES)
 		|| exit 1; \
 	done
 
+distclean: clean
+
 clean:
-	@rm -fv *.pyc *~ .*~ *.o *.so core* *.desktop
+	@rm -fv *.pyc *~ .*~ *.o *.so ../*.so core* *.desktop
 	@find . -name .\#\* -exec rm -fv {} \;
 
 # useful macro
