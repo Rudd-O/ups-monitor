@@ -42,70 +42,15 @@ def get_shared_path():
 	
 	return sharepath
 
+def get_version():
+	f = file(path.join(get_shared_path(),"version"))
+	vers = f.readlines()
+	f.close()
+	return vers[0].strip()
+
 sys.path[0] = get_shared_path()
 
 import eggtrayicon
-
-
-
-class AuxiliaryProgramNotFound(Exception):
-	def __init__(self, value):
-		self.value = value
-	def __str__(self):
-		return repr(self.value)
-
-class NoBrowserError(AuxiliaryProgramNotFound):
-	pass
-	
-class NoMailClientError(AuxiliaryProgramNotFound):
-	pass
-
-def get_full_path_to_program(program):
-	possible_browsers = [program]
-	for browser in possible_browsers:
-		command = popen("LC_ALL=C which " + browser + " 2> /dev/null")
-		r = command.readlines()
-		command.close()
-		if r:
-			return strip(r[0])
-	return None
-
-
-
-def get_browser():
-	possible_browsers = ["gnome-open","mozilla","firefox","konqueror"]
-	for browser in possible_browsers:
-		command = popen("LC_ALL=C which " + browser + " 2> /dev/null")
-		r = command.readlines()
-		command.close()
-		if r:
-			return strip(r[0])
-	return None
-
-
-def get_mail_client():
-	possible_clients = ["gnome-open","evolution","kmail"]
-	for client in possible_clients:
-		command = popen("LC_ALL=C which " + client + " 2> /dev/null")
-		r = command.readlines()
-		command.close()
-		if r:
-			return strip(r[0])
-	return None
-
-
-def open_webpage(url):
-	browser = get_browser()
-	if browser is None:
-		raise NoBrowserError, "No suitable browser found"
-	system( browser + " '" + url + "'" )
-
-def compose_mail(url):
-	client = get_mail_client()
-	if client is None:
-		raise NoMailClientError, "No suitable mail client found"
-	system( client  + " 'mailto:" + url + "'" )
-	
 
 
 def read_ups_config(file):
@@ -704,17 +649,6 @@ class UPSMonitor (gtk.glade.XML):
 		if program:
 			system("gnome-session-save")
 	
-	def get_version(self):
-		program = gnome.program_get()
-		return program.get_property("app-version")
-		# the following code is deprecated and will no longer be used
-		file = path.join(self.sharepath,"version")
-		f = open(file)
-		lines = f.readlines()
-		version = strip(lines[0])
-		return version
-		
-		
 	def connect_signals(self):
 		self.signal_autoconnect(self)
 
@@ -735,7 +669,7 @@ class UPSMonitor (gtk.glade.XML):
 		self.get_widget("remaining_time_image").set_from_file(path.join(self.sharepath,"remaining-time.png"))
 		
 		title = "<span weight=\"bold\"><big><big>UPS monitor</big></big></span>"
-		version = "<b>version "+self.get_version()+"</b>"
+		version = "<b>version "+get_version()+"</b>"
 		subtitle = "A graphical application to monitor the status of your UPS"
 		
 		self.get_widget("label_about").set_markup(title + "\n" + version + "\n" + subtitle)
@@ -1150,35 +1084,26 @@ class UPSMonitor (gtk.glade.XML):
 		self.hide_prefs_window()
 		
 
+	def run_uri(self,uri): gnome.url_show(uri)
+
+	
 	def open_website(self,caller = None):
-		try:
-			open_webpage("http://www.amautacorp.com/staff/Rudd-O/ups-monitor/")
-		except NoBrowserError, e:
-			pass
+		self.run_uri("http://www.amautacorp.com/staff/Rudd-O/ups-monitor/")
 		
 	def open_author_website(self,caller = None):
-		try:
-			open_webpage("http://www.amautacorp.com/staff/Rudd-O/")
-		except NoBrowserError, e:
-			pass
+		self.run_uri("http://www.amautacorp.com/staff/Rudd-O/")
 		
 	def send_mail_to_author(self,caller = None):
-		try:
-			compose_mail("rudd-o@amautacorp.com")
-		except NoBrowserError, e:
-			pass
+		self.run_uri("mailto:rudd-o@amautacorp.com")
 	
 	def open_gpl(self,caller = None):
-		try:
-			open_webpage("http://www.fsf.org/copyleft/gpl.txt")
-		except NoBrowserError, e:
-			pass
+		self.run_uri("http://www.fsf.org/copyleft/gpl.txt")
 		
 		
 
 def main():
 
-	program = gnome.program_init("ups-monitor","0.8")
+	program = gnome.program_init("ups-monitor",get_version())
 	program.parse_args()
 # 	print program.get_property("gnome-datadir")
 
