@@ -701,30 +701,25 @@ class UPSMonitor (gtk.glade.XML):
 			self.get_widget("status_icon_ok").hide()
 			self.get_widget("status_icon_error").show()
 	
-	def show_error_dialog(self,message,title=None):
+	def show_dialog(self,dialogtype,message,title=None):
 		if title:
+			dialogtitle = title
 			title = "<span weight='bold' size='larger'>" + title + "</span>\n\n"
 		else:
+			dialogtitle = "UPS monitor - error"
 			title = ""
-		self.get_widget("error_message").set_markup(title+message)
-		self.get_widget("error_dialog").present()
-		#self.update_statusbar(message,False)
+		self.get_widget(dialogtype + "_message").set_markup(title+message)
+		self.get_widget(dialogtype + "_dialog").set_title(dialogtitle)
+		self.get_widget(dialogtype + "_dialog").present()
+
+	def show_error_dialog(self,message,title=None):
+		return self.show_dialog("error",message,title)
 	
 	def show_info_dialog(self,message,title=None):
-		if title:
-			title = "<span weight='bold' size='larger'>" + title + "</span>\n\n"
-		else:
-			title = ""
-		self.get_widget("info_message").set_markup(title + message)
-		self.get_widget("info_dialog").present()
+		return self.show_dialog("info",message,title)
 	
 	def show_warning_dialog(self,message,title=None):
-		if title:
-			title = "<span weight='bold' size='larger'>" + title + "</span>\n\n"
-		else:
-			title = ""
-		self.get_widget("warning_message").set_markup(title + message)
-		self.get_widget("warning_dialog").present()
+		return self.show_dialog("warning",message,title)
 	
 	def show_about_dialog(self,caller=None):
 		self.get_widget("about_dialog").present()
