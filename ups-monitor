@@ -644,12 +644,9 @@ class UPSMonitor (gtk.glade.XML):
 
 
 	def save_session(self):
-		program = get_full_path_to_program("dcop")
-		if program:
-			system("dcop ksmserver ksmserver saveCurrentSession")
-		program = get_full_path_to_program("gnome-session-save")
-		if program:
-			system("gnome-session-save")
+		print "saving sess"
+		self.smclient.request_save(gnome.ui.SAVE_BOTH,False,gnome.ui.INTERACT_NONE,False,True)
+		self.smclient.flush()
 	
 	def connect_signals(self):
 		self.signal_autoconnect(self)
@@ -723,8 +720,9 @@ class UPSMonitor (gtk.glade.XML):
 		return self.show_dialog("warning",message,title)
 	
 	def show_about_dialog(self,caller=None):
+		self.save_session()
 		self.get_widget("about_dialog").present()
-		
+
 	def dismiss_error_dialog(self,caller=None,e=None):
 		self.get_widget("error_dialog").hide()
 		return True
