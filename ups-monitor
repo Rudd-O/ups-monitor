@@ -644,9 +644,8 @@ class UPSMonitor (gtk.glade.XML):
 
 
 	def save_session(self):
-		print "saving sess"
 		self.smclient.request_save(gnome.ui.SAVE_BOTH,False,gnome.ui.INTERACT_NONE,False,True)
-		self.smclient.flush()
+#		self.smclient.flush()
 	
 	def connect_signals(self):
 		self.signal_autoconnect(self)
@@ -1102,10 +1101,22 @@ class UPSMonitor (gtk.glade.XML):
 	def setup_session_management(self):
 		self.smclient = gnome.ui.master_client()
 		self.smclient.connect_object("save-yourself",self.save_yourself,None)
+		self.smclient.connect_object("die",self.die,None)
+		self.smclient.connect_object("save-complete",self.save_complete,None)
+		self.smclient.connect_object("shutdown-cancelled",self.shutdown_cancelled,None)
 
 	def save_yourself(self,*args):
 		self.save_config()
+		if args[0] == 1: self.smclient.request_phase_2()
+
+	def die(self,u=None):
+		self.quit()
 		
+	def save_complete(self,u=None):
+		return
+		
+	def shutdown_cancelled(self,u=None):
+		return		
 
 def main():
 
