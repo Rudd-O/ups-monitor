@@ -1174,7 +1174,7 @@ class UPSMonitor (gtk.glade.XML):
 
 def main():
 
-	program = gnome.program_init("ups-monitor","0.6")
+	program = gnome.program_init("ups-monitor","0.8")
 	program.parse_args()
 # 	print program.get_property("gnome-datadir")
 
