@@ -13,7 +13,7 @@ Release:        %rel
 Copyright:      Amautacorp S.A. 
 Group:          System/Monitoring
 Source:         %{name}-%ver.tar.gz
-URL:            http://www.amautacorp.com/staff/Rudd-O/ups-monitor/
+URL:            http://www.amautacorp.com/staff/Rudd-O/projects/ups-front/
 BuildRoot:      %{_tmppath}/build-%{name}-%{ver}
 Requires:       pygtk2 pygtk2-libglade gnome-python2
 BuildArch:      i386
@@ -37,6 +37,17 @@ Monitor de SAI necesita el servicio Network UPS Tools (nut).
 
 
 %changelog
+* Fri Mar 11 2005 Manuel Amador <rudd-o@amautacorp.com> 0.8.1-1
+- Using GNOME support functions instead of rolling my own.
+- Build system improved
+
+* Mon Feb 07 2005  Arnaud Quette  <arnaud.quette@mgeups.com> 0.8.1-1
+- Change version numbering to x.y.z (0.8.1)
+- Correct eggtray install/uninstall/clean rules
+- Add a basic manpage
+- Add a bzdist rule to generate tar.bz2 archives
+- Modified the Changelog format to be more meaningful
+
 * Sun Jul 25 2004 Manuel Amador (Rudd-O) <rudd-o@amautacorp.com> 0.4-1
 - Implemented smart tray icon
 - Improved user interaction and usability
@@ -75,8 +86,9 @@ make DESTDIR=$RPM_BUILD_ROOT install
 
 %files
 %defattr(-,root,root)
-%prefix/bin/ups-monitor
+%prefix/bin/%name
 %prefix/share/applications
-%prefix/share/pixmaps/ups-monitor.png
-%prefix/share/ups-monitor
+%prefix/share/pixmaps/%name.png
+%prefix/share/%name
+%doc %prefix/man/man1/*
 %doc %prefix/share/doc/%name-%ver

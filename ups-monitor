@@ -1088,7 +1088,7 @@ class UPSMonitor (gtk.glade.XML):
 
 	
 	def open_website(self,caller = None):
-		self.run_uri("http://www.amautacorp.com/staff/Rudd-O/ups-monitor/")
+		self.run_uri("http://www.amautacorp.com/staff/Rudd-O/projects/ups-front/")
 		
 	def open_author_website(self,caller = None):
 		self.run_uri("http://www.amautacorp.com/staff/Rudd-O/")

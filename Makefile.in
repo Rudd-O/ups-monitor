@@ -731,6 +731,12 @@ uninstall-man: uninstall-man1
 	uninstall-pixmapsDATA uninstall-pkgdataDATA
 
 
+#eggtrayiconmodule.so:
+#	olddir=`pwd`
+#	cd $(srcdir)/eggtray
+#	make
+#	cd "$olddir"
+
 install-data-hook:
 	$(mkinstalldirs) $(DESTDIR)$(appsdir)
 	$(DESKTOP_FILE_INSTALL) --vendor rudd-o --dir $(DESTDIR)$(appsdir) $(srcdir)/ups-monitor.desktop

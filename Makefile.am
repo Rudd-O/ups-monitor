@@ -47,6 +47,12 @@ EXTRA_DIST = \
 	eggtrayiconmodule.so \
 	ups-monitor.desktop ups-monitor.spec autogen.sh
 
+#eggtrayiconmodule.so:
+#	olddir=`pwd`
+#	cd $(srcdir)/eggtray
+#	make
+#	cd "$olddir"
+
 install-data-hook:
 	$(mkinstalldirs) $(DESTDIR)$(appsdir)
 	$(DESKTOP_FILE_INSTALL) --vendor rudd-o --dir $(DESTDIR)$(appsdir) $(srcdir)/ups-monitor.desktop
