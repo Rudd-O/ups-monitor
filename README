@@ -27,11 +27,11 @@ This software requires:
 
 To install this software:
 
-Type 'make install' while on the command line.  You will probably need
-administrative privileges to perform a system-wide installation.  Check
-the Makefile for variables you can control to modify installation directories.
+Type './configure && make install' while on the command line.  You will probably
+need administrative privileges to perform a system-wide installation.  Check
+the standard configure options (--help) to install in other directories.
 
-(using the provided RPM packages is much easier)
+(using the provided RPM packages is much easier, trust me!)
 
 
 Feedback:

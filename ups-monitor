@@ -1174,14 +1174,17 @@ class UPSMonitor (gtk.glade.XML):
 
 def main():
 
-	program = gnome.program_init("ups-monitor","0.5")
+	program = gnome.program_init("ups-monitor","0.6")
+	program.parse_args()
 # 	print program.get_property("gnome-datadir")
 
-	
-	if len(sys.argv) > 1:
-		upsaddress = sys.argv[1]
-	else:
-		upsaddress = None
+	upsaddress = None
+	counter = 1
+	while counter < len(sys.argv):
+		if sys.argv[counter][0:1] != "-":
+			upsaddress = sys.argv[counter]
+			break;
+		counter += 1
 
 	app = UPSMonitor(get_shared_path())
 

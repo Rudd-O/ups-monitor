@@ -1,12 +1,14 @@
 dnl Process with autoconf to produce configure
 
-AC_INIT(ups-monitor.glade)
+AC_INIT
+AC_CONFIG_SRCDIR([ups-monitor.glade])
 AM_INIT_AUTOMAKE(ups-monitor, `cat $srcdir/version`)
 AM_MAINTAINER_MODE
 
 AM_PATH_PYTHON
 
 PKG_CHECK_MODULES(PREREQS, pygtk-2.0)
+PKG_CHECK_MODULES(PREREQS, gnome-python-2.0)
 
 AC_PATH_PROG(DESKTOP_FILE_INSTALL, desktop-file-install, NO)
 if test x"$DESKTOP_FILE_INSTALL" = xNO ; then
@@ -16,4 +18,5 @@ fi
 
 AC_SUBST(DESKTOP_FILE_INSTALL)
 
-AC_OUTPUT([Makefile])
+AC_CONFIG_FILES([Makefile])
+AC_OUTPUT

@@ -1,3 +1,6 @@
+2004-09-21  Manuel Amador  <rudd-o@amautacorp.com>
+	* delved into GNOME python to support session management
+
 2004-08-04  Manuel Amador  <rudd-o@amautacorp.com>
 	* fixed autotools build
 	* updated RPM to suit

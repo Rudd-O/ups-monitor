@@ -1,6 +1,6 @@
 # $Id$
 
-%define ver 0.5
+%define ver 0.6
 %define rel 1
 %define prefix /usr
 
@@ -15,8 +15,8 @@ Group:          System/Monitoring
 Source:         %{name}-%ver.tar.gz
 URL:            http://www.amautacorp.com/staff/Rudd-O/ups-monitor/
 BuildRoot:      %{_tmppath}/build-%{name}-%{ver}
-Requires:       pygtk2 pygtk2-libglade
-BuildArch:      noarch
+Requires:       pygtk2 pygtk2-libglade gnome-python2
+BuildArch:      i386
 Packager:       Manuel Amador (Rudd-O) <rudd-o@amautacorp.com>
 
 %description
