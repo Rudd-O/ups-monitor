@@ -1,3 +1,6 @@
+2004-12-14  Manuel Amador  <rudd-o@amautacorp.com>
+	* Fixed session management cmdline param sm-session-prefix
+
 2004-09-21  Manuel Amador  <rudd-o@amautacorp.com>
 	* delved into GNOME python to support session management
 
