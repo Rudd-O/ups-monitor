@@ -1865,23 +1865,23 @@ fi
   else
      PKG_CONFIG_MIN_VERSION=0.9.0
      if $PKG_CONFIG --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
-        echo "$as_me:$LINENO: checking for pygtk-2.2" >&5
-echo $ECHO_N "checking for pygtk-2.2... $ECHO_C" >&6
+        echo "$as_me:$LINENO: checking for pygtk-2.0" >&5
+echo $ECHO_N "checking for pygtk-2.0... $ECHO_C" >&6
 
-        if $PKG_CONFIG --exists "pygtk-2.2" ; then
+        if $PKG_CONFIG --exists "pygtk-2.0" ; then
             echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
             succeeded=yes
 
             echo "$as_me:$LINENO: checking PREREQS_CFLAGS" >&5
 echo $ECHO_N "checking PREREQS_CFLAGS... $ECHO_C" >&6
-            PREREQS_CFLAGS=`$PKG_CONFIG --cflags "pygtk-2.2"`
+            PREREQS_CFLAGS=`$PKG_CONFIG --cflags "pygtk-2.0"`
             echo "$as_me:$LINENO: result: $PREREQS_CFLAGS" >&5
 echo "${ECHO_T}$PREREQS_CFLAGS" >&6
 
             echo "$as_me:$LINENO: checking PREREQS_LIBS" >&5
 echo $ECHO_N "checking PREREQS_LIBS... $ECHO_C" >&6
-            PREREQS_LIBS=`$PKG_CONFIG --libs "pygtk-2.2"`
+            PREREQS_LIBS=`$PKG_CONFIG --libs "pygtk-2.0"`
             echo "$as_me:$LINENO: result: $PREREQS_LIBS" >&5
 echo "${ECHO_T}$PREREQS_LIBS" >&6
         else
@@ -1889,7 +1889,7 @@ echo "${ECHO_T}$PREREQS_LIBS" >&6
             PREREQS_LIBS=""
             ## If we have a custom action on failure, don't print errors, but
             ## do set a variable so people can do so.
-            PREREQS_PKG_ERRORS=`$PKG_CONFIG --errors-to-stdout --print-errors "pygtk-2.2"`
+            PREREQS_PKG_ERRORS=`$PKG_CONFIG --errors-to-stdout --print-errors "pygtk-2.0"`
             echo $PREREQS_PKG_ERRORS
         fi
 
@@ -1904,8 +1904,8 @@ echo "${ECHO_T}$PREREQS_LIBS" >&6
   if test $succeeded = yes; then
      :
   else
-     { { echo "$as_me:$LINENO: error: Library requirements (pygtk-2.2) not met; consider adjusting the PKG_CONFIG_PATH environment variable if your libraries are in a nonstandard prefix so pkg-config can find them." >&5
-echo "$as_me: error: Library requirements (pygtk-2.2) not met; consider adjusting the PKG_CONFIG_PATH environment variable if your libraries are in a nonstandard prefix so pkg-config can find them." >&2;}
+     { { echo "$as_me:$LINENO: error: Library requirements (pygtk-2.0) not met; consider adjusting the PKG_CONFIG_PATH environment variable if your libraries are in a nonstandard prefix so pkg-config can find them." >&5
+echo "$as_me: error: Library requirements (pygtk-2.0) not met; consider adjusting the PKG_CONFIG_PATH environment variable if your libraries are in a nonstandard prefix so pkg-config can find them." >&2;}
    { (exit 1); exit 1; }; }
   fi
 
