@@ -1100,12 +1100,8 @@ class UPSMonitor (gtk.glade.XML):
 		self.run_uri("http://www.fsf.org/copyleft/gpl.txt")
 		
 	def setup_session_management(self):
-		self.smclient = gnome.ui.Client()
-
+		self.smclient = gnome.ui.master_client()
 		self.smclient.connect_object("save-yourself",self.save_yourself,None)
-
-		self.smclient.set_program("ups-monitor")
-		self.smclient.connect_to_session_manager()
 
 	def save_yourself(self,*args):
 		self.save_config()
