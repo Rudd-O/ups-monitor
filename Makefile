@@ -1,4 +1,4 @@
-# $Id: Makefile 53 2004-06-28 23:27:58Z rudd-o $
+# $Id$
 
 VERSION	= $(shell head -1 ./version)
 INSTALL	= install
@@ -31,12 +31,10 @@ install:
 	$(INSTALL) -D -m 755 ups-monitor $(RPM_BUILD_ROOT)$(BINDIR)/ups-monitor
 	$(INSTALL) -D -m 644 ups-monitor.glade $(RPM_BUILD_ROOT)$(SHAREDIR)/ups-monitor.glade
 	$(INSTALL) -D -m 644 ups-monitor.gladep $(RPM_BUILD_ROOT)$(SHAREDIR)/ups-monitor.gladep
-	$(INSTALL) -D -m 644 battery-level.png $(RPM_BUILD_ROOT)$(SHAREDIR)/battery-level.png
-	$(INSTALL) -D -m 644 load.png $(RPM_BUILD_ROOT)$(SHAREDIR)/load.png
-	$(INSTALL) -D -m 644 remaining-time.png $(RPM_BUILD_ROOT)$(SHAREDIR)/remaining-time.png
-	$(INSTALL) -D -m 644 ups-monitor.png $(RPM_BUILD_ROOT)$(SHAREDIR)/ups-monitor.png
+	find -name '*.png' -print | grep -v .svn | xargs -i $(INSTALL) -D -m 644 {} $(RPM_BUILD_ROOT)$(SHAREDIR)/{}
 	$(INSTALL) -D -m 644 ups-monitor.png $(RPM_BUILD_ROOT)$(PIXMAPDIR)/ups-monitor.png
 	$(INSTALL) -D -m 644 version $(RPM_BUILD_ROOT)$(SHAREDIR)/version
+	$(INSTALL) -D -m 755 eggtrayiconmodule.so $(RPM_BUILD_ROOT)$(SHAREDIR)/eggtrayiconmodule.so
 	desktop-file-install --vendor rudd-o --dir $(RPM_BUILD_ROOT)$(PREFIX)/share/applications ups-monitor.desktop
 
 dist:

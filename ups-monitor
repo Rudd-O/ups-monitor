@@ -1,10 +1,12 @@
 #!/usr/bin/env python
 import sys
 import gobject
+import pygtk
+pygtk.require("2.0")
 import gtk
 import gtk.glade
-import gnome
-import gnome.ui
+#import gnome
+#import gnome.ui
 from inspect import *
 import inspect
 from os import path
@@ -16,6 +18,7 @@ from time import sleep
 from select import select
 import asynchat
 import asyncore
+
 
 def get_shared_path():
 	testfile = 'version'
@@ -31,6 +34,11 @@ def get_shared_path():
 		raise Exception, "UPS monitor shared files " + testfile + " cannot be found in any of " + str(sharedirs) + " default paths"
 	
 	return sharepath
+
+sys.path[0] = get_shared_path()
+
+import eggtrayicon
+
 
 
 class AuxiliaryProgramNotFound(Exception):
@@ -449,6 +457,139 @@ class UPSPollerThread(Thread):
 			self.ups.disconnect()
 		self.ups = u
 
+class UPSTrayMonitor:
+
+	window = None
+	ac_icon = None
+	bat_icon = None
+	warning_icon = None
+	battery_good_icon = None
+	battery_low_icon = None
+	battery_critical_icon = None
+	icon_container = None
+	sharepath = None
+	last_tooltip = None
+	alarm_message = None
+	error_message = None
+	event_box = None
+	app = None
+	logo_icon = None
+
+	def __init__(self,app):
+		self.app = app
+		self.sharepath = app.sharepath
+
+		self.window = eggtrayicon.create_window("ups-tray-monitor")
+
+		self.event_box = gtk.EventBox()
+		self.event_box.set_events(gtk.gdk.BUTTON_PRESS_MASK)
+		self.window.add(self.event_box)
+
+		self.event_box.show()
+
+		self.window.tooltip = gtk.Tooltips()
+		self.window.tooltip.enable()
+
+		self.icon_container = gtk.HBox()
+		self.icon_container.set_spacing(2)
+		self.icon_container.set_border_width(4)
+		self.icon_container.show()
+
+		self.logo_icon = gtk.Image()
+		self.logo_icon.set_from_file(path.join(self.sharepath,"ups-monitor-small.png"))
+		self.logo_icon.show()
+		self.icon_container.add(self.logo_icon)
+
+		self.ac_icon = gtk.Image()
+		self.ac_icon.set_from_file(path.join(self.sharepath,"ac-icon.png"))
+		self.icon_container.add(self.ac_icon)
+
+		self.bat_icon = gtk.Image()
+		self.bat_icon.set_from_file(path.join(self.sharepath,"bat-icon.png"))
+		self.icon_container.add(self.bat_icon)
+
+		self.warning_icon = gtk.Image()
+		self.warning_icon.set_from_file(path.join(self.sharepath,"warning-icon.png"))
+		self.icon_container.add(self.warning_icon)
+
+		self.battery_good_icon = gtk.Image()
+		self.battery_good_icon.set_from_file(path.join(self.sharepath,"battery-good.png"))
+		self.icon_container.add(self.battery_good_icon)
+
+		self.battery_low_icon = gtk.Image()
+		self.battery_low_icon.set_from_file(path.join(self.sharepath,"battery-low.png"))
+		self.icon_container.add(self.battery_low_icon)
+
+		self.battery_critical_icon = gtk.Image()
+		self.battery_critical_icon.set_from_file(path.join(self.sharepath,"battery-critical.png"))
+		self.icon_container.add(self.battery_critical_icon)
+
+
+		self.event_box.add(self.icon_container)
+		self.window.show()
+
+		self.event_box.connect("event",self.event)
+
+
+	def set_power_source(self,source):
+		self.logo_icon.hide()
+		if source == "AC":
+			self.ac_icon.show()
+			self.bat_icon.hide()
+			if not self.alarm_message and not self.error_message:
+				self.set_tooltip("UPS is drawing power from wall socket")
+		else:
+			self.ac_icon.hide()
+			self.bat_icon.show()
+			if not self.alarm_message and not self.error_message:
+				self.set_tooltip("UPS is using battery backup power")
+
+	def set_alarm(self,text):
+		self.logo_icon.hide()
+		self.alarm_message = text
+		if text:
+			self.set_tooltip(text)
+			self.warning_icon.show()
+		else:
+			self.warning_icon.hide()
+
+	def set_error(self,text):
+		self.logo_icon.hide()
+		self.error_message = text
+		if text:
+			self.set_tooltip(text)
+			self.ac_icon.hide()
+			self.bat_icon.hide()
+			self.warning_icon.show()
+		else:
+			self.warning_icon.hide()
+
+	def set_tooltip(self,text):
+		if self.error_message:
+			tip = self.error_message
+		elif self.alarm_message:
+			tip = self.alarm_message
+		else:
+			tip = text
+
+		if tip != self.last_tooltip:
+			self.window.tooltip.set_tip(self.window,tip)
+		self.last_tooltip = tip
+
+	def toggle_main_window (self):
+		self.app.toggle_main_window()
+
+
+
+	def event(self,caller=None,event=None):
+		button = None
+		if event.type == gtk.gdk.BUTTON_PRESS:
+			try:
+				button = event.button
+			except AttributeError:	
+				pass
+		if button == 1 or button == 3 or button == 2:
+			self.toggle_main_window()
 		
 class UPSMonitor (gtk.glade.XML):
 	ups = None
@@ -457,14 +598,36 @@ class UPSMonitor (gtk.glade.XML):
 	pollerthread = None
 	last_power_source = None
 	little_time_left_warning = None
+	session_saved = None
+	tray_icon = None
 	
 	def __init__ (self,sharepath):
 		self.sharepath = sharepath
 		gtk.glade.XML.__init__(self,path.join(self.sharepath,'ups-monitor.glade'))
 		self.window = self.get_widget("window")
+		self.prepare_widgets()
 		self.connect_signals()
 		self.load_config()
+		if self.config["visible"] is True:
+			self.window.show()
 	
+	def toggle_main_window(self,caller=None,data=None):
+		if self.window.get_property("visible") == False:
+			self.window.present()
+			self.window.grab_focus()
+		else:
+			self.window.hide()
+			if not self.config["background_monitoring_shown"] and self.ups:
+				self.show_info_dialog("UPS monitor will continue monitoring your UPS in the background.  You can access the UPS monitor window by clicking the UPS monitor status icon  in the notification area.","UPS monitor keeps monitoring your UPS")
+				self.config["background_monitoring_shown"] = True
+		return True
+
+	def main_window_closed(self,caller=None,data=None):
+		if self.ups is None:
+			self.quit()
+		return self.toggle_main_window()
+
+
 	def save_session(self):
 		program = get_full_path_to_program("dcop")
 		if program:
@@ -482,26 +645,19 @@ class UPSMonitor (gtk.glade.XML):
 		
 		
 	def connect_signals(self):
-		self.get_widget("tool_exit").connect("clicked",self.quit)
-		self.get_widget("tool_prefs").connect("clicked",self.open_preferences)
-		self.get_widget("tool_about").connect("clicked",self.show_about_dialog)
-		self.get_widget("window").connect("destroy",self.quit)
-		self.get_widget("prefs_ok").connect("clicked",self.process_prefs_ok)
-		self.get_widget("prefs_cancel").connect("clicked",self.process_prefs_cancel)
-		self.get_widget("info_dismiss").connect("clicked",self.dismiss_info_dialog)
-		self.get_widget("error_dismiss").connect("clicked",self.dismiss_error_dialog)
-		self.get_widget("warning_dismiss").connect("clicked",self.dismiss_warning_dialog)
-		self.get_widget("about_dismiss").connect("clicked",self.dismiss_about_dialog)
-		self.get_widget("prefs_window").connect("show",self.prepare_prefs_window)
-		self.get_widget("authenticate").connect("toggled",self.update_auth_container_status)
-		self.get_widget("prefs_window").connect("delete_event",self.hide_prefs_window)
-		self.get_widget("info_dialog").connect("delete_event",self.dismiss_info_dialog)
-		self.get_widget("error_dialog").connect("delete_event",self.dismiss_error_dialog)
-		self.get_widget("warning_dialog").connect("delete_event",self.dismiss_warning_dialog)
-		self.get_widget("about_dialog").connect("delete_event",self.dismiss_about_dialog)
-		self.get_widget("radio_local_upses").connect("toggled",self.process_radio_local_upses)
-		self.get_widget("radio_network_upses").connect("toggled",self.process_radio_network_upses)
-				
+		self.signal_autoconnect(self)
+
+
+	def prepare_widgets(self):
+
+		self.get_widget("window").set_icon_from_file(path.join(self.sharepath,"ups-monitor.png"))
+		self.get_widget("prefs_window").set_icon_from_file(path.join(self.sharepath,"ups-monitor.png"))
+		self.get_widget("info_dialog").set_icon_from_file(path.join(self.sharepath,"ups-monitor.png"))
+		self.get_widget("warning_dialog").set_icon_from_file(path.join(self.sharepath,"ups-monitor.png"))
+		self.get_widget("error_dialog").set_icon_from_file(path.join(self.sharepath,"ups-monitor.png"))
+		self.get_widget("about_dialog").set_icon_from_file(path.join(self.sharepath,"ups-monitor.png"))
+
+
 		self.get_widget("about_image").set_from_file(path.join(self.sharepath,"ups-monitor.png"))
 		self.get_widget("battery_image").set_from_file(path.join(self.sharepath,"battery-level.png"))
 		self.get_widget("load_image").set_from_file(path.join(self.sharepath,"load.png"))
@@ -513,44 +669,23 @@ class UPSMonitor (gtk.glade.XML):
 		
 		self.get_widget("label_about").set_markup(title + "\n" + version + "\n" + subtitle)
 		
-		self.get_widget("button_website").connect("clicked",self.open_website)
-		self.get_widget("button_author").connect("clicked",self.open_author_website)
-		self.get_widget("button_email").connect("clicked",self.send_mail_to_author)
-		self.get_widget("button_gpl").connect("clicked",self.open_gpl)
-		
-
+		# prepare the prefs window
 		
 		# make the combo useful (actually, create it)
-		localupses = None
 		
-		combobox = self.get_widget("hbox_local_upses").get_data("combo")
-		if not combobox:
-			combobox = gtk.Combo()
-			self.get_widget("hbox_local_upses").pack_end(combobox)
-			self.get_widget("hbox_local_upses").set_data("combo",combobox)
-			combobox.show()
-		
-		try:
-			localupses = read_ups_config("/etc/ups/ups.conf").keys()
-		except Exception:
-			#print "No UPS config file /etc/ups/ups.conf found"
-			pass
-		
-		if not localupses:
-			self.get_widget("radio_network_upses").set_active(True)
-			self.get_widget("radio_local_upses").set_sensitive(False)
-		else:
- 			combobox.set_popdown_strings(localupses)
-		
-		self.get_widget("radio_local_upses").set_active(True)
-				
+		#finally, the prefs dialog should always cover the main window
+		self.get_widget("prefs_window").set_transient_for(self.get_widget("window"))
+
+#	        self.applet_window.connect("destroy", self.exit_applet)
+		self.tray_icon = UPSTrayMonitor(self)
+
 	def disable_display(self):
 		self.get_widget("display").set_sensitive(False)
 	
 	def enable_display(self):
 		self.get_widget("display").set_sensitive(True)
 	
-	def quit(self,caller):
+	def quit(self,caller=None,extraobject=None):
 		self.save_config()
 		gtk.main_quit()
 
@@ -573,7 +708,7 @@ class UPSMonitor (gtk.glade.XML):
 		else:
 			title = ""
 		self.get_widget("error_message").set_markup(title+message)
-		self.get_widget("error_dialog").show()
+		self.get_widget("error_dialog").present()
 		#self.update_statusbar(message,False)
 	
 	def show_info_dialog(self,message,title=None):
@@ -583,7 +718,7 @@ class UPSMonitor (gtk.glade.XML):
 		else:
 			title = ""
 		self.get_widget("info_message").set_markup(title + message)
-		self.get_widget("info_dialog").show()
+		self.get_widget("info_dialog").present()
 	
 	def show_warning_dialog(self,message,title=None):
 		if title:
@@ -591,11 +726,11 @@ class UPSMonitor (gtk.glade.XML):
 		else:
 			title = ""
 		self.get_widget("warning_message").set_markup(title + message)
-		self.get_widget("warning_dialog").show()
+		self.get_widget("warning_dialog").present()
 	
 	def show_about_dialog(self,caller=None):
 		# this has only been prototyped needs UI
-		self.get_widget("about_dialog").show()
+		self.get_widget("about_dialog").present()
 		
 	def dismiss_error_dialog(self,caller=None,e=None):
 		self.get_widget("error_dialog").hide()
@@ -619,58 +754,69 @@ class UPSMonitor (gtk.glade.XML):
 		
 	def show_prefs_window(self,caller=None,e=None):
 
-		
-		self.get_widget("prefs_window").show()
+		self.get_widget("prefs_window").present()
 		return True
 		
 		
 		
 	def load_config(self):
-		pass
-	
-	def monitor_last_ups(self):
+		self.config = dict()
+
 		upsaddress = None
 		username = None
 		password = None
+		visible = True
+		background_monitoring_shown = False
+
 		try:
 			fn = path.expanduser("~") + "/.ups-monitor.conf"
 			f = open(fn,"r")
+			lines = f.readlines()
+			
+			for line in lines:
+				key, value = split(line,"=")
+				key = strip(key)
+				value = strip(value)
+				if key == "address":
+					upsaddress = value
+				if key == "username":
+					username = value
+				if key == "password":
+					password = value
+				if key == "app_visible":
+					if value == "true":
+						visible = True
+					else:
+						visible = False
+				if key == "background_monitoring_shown":
+					if value == "true":
+						background_monitoring_shown = True
+					else:
+						background_monitoring_shown = False
+			f.close()
+
 		except IOError, e:
-			raise NoLastUPSError, "No last UPS to monitor"
-		lines = f.readlines()
-		for line in lines:
-			key, value = split(line,"=")
-			key = strip(key)
-			value = strip(value)
-			if key == "address":
-				upsaddress = value
-			if key == "username":
-				username = value
-			if key == "password":
-				password = value
+			pass
+
 		if upsaddress is not None:
-			if find(upsaddress,"@localhost") == -1:
-				self.get_widget("ups_address").set_text(upsaddress)
-				self.get_widget("radio_network_upses").set_active(True)
-			else:
-				addr = upsaddress[:find(upsaddress,"@localhost")]
-				self.get_widget("hbox_local_upses").get_data("combo").get_children()[0].set_text(addr)
-				self.get_widget("radio_local_upses").set_active(True)
-			if username is not None:
-				self.get_widget("authenticate").set_active(True)
-				self.get_widget("username").set_text(username)
-			if password is not None:
-				self.get_widget("authenticate").set_active(True)
-				self.get_widget("password").set_text(password)
-			self.monitor(upsaddress,username,password)
-			
-			
+			self.config["ups"] = (upsaddress,username,password)
+
+		self.config["visible"] = visible
+		self.config["background_monitoring_shown"] = background_monitoring_shown
+
 	
+	def monitor_last_ups(self):
+		try:
+			upsaddress,username,password = self.config["ups"]
+			self.monitor(upsaddress,username,password)
+		except Exception, e:
+			raise NoLastUPSError, "No last UPS to monitor"
+			
 	def save_config(self):
+		fn = path.expanduser("~") + "/.ups-monitor.conf"
+		os.umask(077)
+		f = open(fn,"w")
 		if self.ups is not None:
-			fn = path.expanduser("~") + "/.ups-monitor.conf"
-			os.umask(077)
-			f = open(fn,"w")
 			string = "address = " + self.ups.get_address() + "\n"
 			f.write(string)
 			if  self.ups.get_username()  is not None:
@@ -679,7 +825,16 @@ class UPSMonitor (gtk.glade.XML):
 			if  self.ups.get_password()  is not None:
 				string = "password = " + self.ups.get_password() + "\n"
 				f.write(string)
-			f.close()
+		if self.window.get_property("visible"):
+			string = "app_visible = true" + "\n"
+		else:
+			string = "app_visible = false" + "\n"
+		if self.config["background_monitoring_shown"]:
+			string = "background_monitoring_shown = true" + "\n"
+		else:
+			string = "background_monitoring_shown = false" + "\n"
+		f.write(string)
+		f.close()
 	
 	def monitor(self,ups_address,username,password):
 		
@@ -716,25 +871,33 @@ class UPSMonitor (gtk.glade.XML):
 
 
 	def refresh_display(self):
+
 		if self.pollerthread is None or not self.pollerthread.isAlive():
 			self.show_error_dialog("The network connection to <b>" + get_friendly_computer_name(self.ups.get_host()) +"</b> is lost.  Check for network availability and ensure the UPS server is still online and running.","UPS " + self.ups.get_address() + " is no longer being monitored")
 			self.update_statusbar("Cannot continue monitoring <b>" + self.ups.get_address() + "</b>",False)
 			self.disable_display()
+			self.tray_icon.set_error("The network connection to " + get_friendly_computer_name(self.ups.get_host()) + " is lost.  UPS monitoring stopped.")
+
 			self.ups = None
 			self.timeout_id = None
 			return False
-			
+		
 		u = self.ups
 		
+
 		if u.status == "OK":
-	 		self.update_statusbar("Monitoring UPS <b>"  + u.get_ups_name()  + "</b>, attached to <b>" + get_friendly_computer_name(u.get_host())  + "</b>")
 			self.enable_display()
+			self.tray_icon.set_error(None)
 		if u.status == "DRIVER-NOT-CONNECTED":
 	 		self.update_statusbar(get_friendly_computer_name(u.get_host()).capitalize() + " lost contact with UPS <b>" + u.get_ups_name() + "</b>", False)
 			self.disable_display()
+			self.tray_icon.set_error(get_friendly_computer_name(u.get_host()).capitalize() + " lost contact with UPS " + u.get_ups_name() + "")
+			return True
 		if u.status == "DATA-STALE":
 	 		self.update_statusbar(get_friendly_computer_name(u.get_host()).capitalize() + " has stale information about UPS <b>"  + u.get_ups_name()  + "</b>", False)
 			self.disable_display()
+			self.tray_icon.set_error(get_friendly_computer_name(u.get_host()).capitalize() + " has stale information about UPS "  + u.get_ups_name()  + "")
+			return True
 					
 		if u.manufacturer:
 			self.get_widget("label_manufacturer").set_text(u.manufacturer)
@@ -751,17 +914,37 @@ class UPSMonitor (gtk.glade.XML):
 		else:
 			self.get_widget("label_serial").set_text("(unknown)")
 
+
 		if u.power_source == "AC":
+	 		self.update_statusbar("UPS <b>"  + u.get_ups_name()  + "</b> attached to <b>" + get_friendly_computer_name(u.get_host())  + "</b> is <b>on AC power</b>")
+			self.tray_icon.set_alarm(None)
+			self.tray_icon.set_power_source("AC")
 			if self.little_time_left_warning:
 				self.dismiss_warning_dialog()
 	 			self.little_time_left_warning = None
+			if self.session_saved:
+				self.session_saved = None
 			self.get_widget("label_power_source").set_text("Wall socket")
+
 		elif u.power_source == "BAT":
 			self.get_widget("label_power_source").set_text("Battery backup")
-			if self.last_power_source == "AC":
+			self.tray_icon.set_power_source("BAT")
+			if self.session_saved is None:
+				self.session_saved = True
 				self.save_session()
-			self.update_statusbar(get_friendly_computer_name(u.get_host()).capitalize() + " is now <b>on battery backup</b> - your session was saved")
+
+			if u.remaining_time is not None and u.remaining_time < 60:
+				self.tray_icon.set_alarm("Less than a minute of battery power remaining")
+				if self.little_time_left_warning is None:
+					self.little_time_left_warning = True
+			 		self.update_statusbar("UPS <b>"  + u.get_ups_name()  + "</b> attached to <b>" + get_friendly_computer_name(u.get_host())  + "</b> is <b>low on battery</b>")
+					self.show_warning_dialog(get_friendly_computer_name(u.get_host()).capitalize() + " will power off soon to prevent long-term UPS battery damage, unless utility power returns. Save any open documents and close your session.","Less than a minute of battery power remaining")
+			else:
+		 		self.update_statusbar("UPS <b>"  + u.get_ups_name()  + "</b> attached to <b>" + get_friendly_computer_name(u.get_host())  + "</b> is <b>on battery backup</b>")
+				self.tray_icon.set_alarm(None)
+
 		else:
+	 		self.update_statusbar("UPS <b>"  + u.get_ups_name()  + "</b> attached to <b>" + get_friendly_computer_name(u.get_host())  + "</b> is online")
 			self.get_widget("label_power_source").set_text("(unknown)")
 			
 		self.last_power_source = u.power_source
@@ -818,22 +1001,54 @@ class UPSMonitor (gtk.glade.XML):
 		if u.remaining_time:
 			self.get_widget("meter_remaining_time").set_text(str(u.remaining_time) + " seconds")
 			self.get_widget("meter_remaining_time").set_fraction(float(u.remaining_time)/u.max_remaining_time)
-			if u.power_source == "BAT" and u.remaining_time < 60:
-				self.update_statusbar("<b>Less than a minute</b> of battery power remaining")
-				if self.little_time_left_warning is None:
-					self.show_warning_dialog(get_friendly_computer_name(u.get_host()).capitalize() + " will power off soon to prevent long-term UPS battery damage, unless utility power returns. Save any open documents and close your session.","Less than a minute of battery power remaining")
-				self.little_time_left_warning = True
 				
 		else:
 			self.get_widget("meter_remaining_time").set_text("(unknown)")
 			self.get_widget("meter_remaining_time").set_fraction(0.0)
 		
+
 		return True
 			
 						
-	def prepare_prefs_window(self,caller):
+	def prepare_prefs_window(self,caller=None):
+
+		localupses = None
+		
+		combobox = self.get_widget("hbox_local_upses").get_data("combo")
+		if not combobox:
+			combobox = gtk.Combo()
+			combobox.set_sensitive(False)
+			self.get_widget("hbox_local_upses").pack_end(combobox)
+			self.get_widget("hbox_local_upses").set_data("combo",combobox)
+			combobox.show()
+		
+		try:
+			localupses = read_ups_config("/etc/ups/ups.conf").keys()
+ 			combobox.set_popdown_strings(localupses)
+			self.get_widget("radio_local_upses").set_sensitive(True)
+			combobox.set_sensitive(True)
+			self.get_widget("radio_local_upses").set_active(True)
+		except Exception:
+			pass
+
+		if self.ups:
+			if find(self.ups.get_address(),"@localhost") != -1 and self.get_widget("radio_local_upses").get_property("sensitive"):
+				addr = self.ups.get_address()[:find(self.ups.get_address(),"@localhost")]
+				self.get_widget("hbox_local_upses").get_data("combo").get_children()[0].set_text(addr)
+				self.get_widget("radio_local_upses").set_active(True)
+			else:
+				self.get_widget("ups_address").set_text(self.ups.get_address())
+				self.get_widget("radio_network_upses").set_active(True)
+
+			if self.ups.get_username() is not None:
+				self.get_widget("authenticate").set_active(True)
+				self.get_widget("username").set_text(self.ups.get_username())
+			if self.ups.get_password() is not None:
+				self.get_widget("authenticate").set_active(True)
+				self.get_widget("password").set_text(self.ups.get_password())
+
 		if self.get_widget("radio_local_upses").get_active():
-			self.get_widget("hbox_local_upses").get_data("combo").grab_focus()
+			combobox.get_children()[0].grab_focus()
 		else:
 			self.get_widget("ups_address").grab_focus()
 								
@@ -931,6 +1146,11 @@ else:
 			app.monitor(localupses[0] + "@localhost",None,None)
 
 
+
+
+
 gtk.threads_init()
 
-gtk.main()
+gtk.threads_enter()
+gtk.mainloop()
+gtk.threads_leave()

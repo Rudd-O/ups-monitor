@@ -1,6 +1,6 @@
-# $Id: mydms.spec 57 2004-06-29 00:14:59Z rudd-o $
+# $Id$
 
-%define ver 0.3
+%define ver 0.4
 %define rel 1
 %define prefix /usr
 
@@ -37,6 +37,12 @@ Monitor de SAI necesita el servicio Network UPS Tools (nut).
 
 
 %changelog
+* Sun Jul 25 2004 Manuel Amador (Rudd-O) <rudd-o@amautacorp.com> 0.4-1
+- Implemented smart tray icon
+- Improved user interaction and usability
+- Improvements to README, additions to TODO
+- Removed GNOME dependency
+
 * Fri Jul 23 2004 Manuel Amador (Rudd-O) <rudd-o@amautacorp.com> 0.3-1
 - Credit to Eugenia
 - Fixed GladeXML bug which caused remotely connected UPSes not to work
@@ -70,6 +76,6 @@ PREFIX=%prefix make install
 %defattr(-,root,root)
 %prefix/bin/ups-monitor
 %prefix/share/applications
-%prefix/share/pixmaps
+%prefix/share/pixmaps/ups-monitor.png
 %prefix/share/ups-monitor
-%doc %prefix/share/doc
+%doc %prefix/share/doc/%name-%ver

@@ -5,7 +5,6 @@
 <requires lib="gnome"/>
 
 <widget class="GtkWindow" id="window">
-  <property name="visible">True</property>
   <property name="title" translatable="yes">UPS monitor</property>
   <property name="type">GTK_WINDOW_TOPLEVEL</property>
   <property name="window_position">GTK_WIN_POS_NONE</property>
@@ -17,7 +16,7 @@
   <property name="skip_pager_hint">False</property>
   <property name="type_hint">GDK_WINDOW_TYPE_HINT_NORMAL</property>
   <property name="gravity">GDK_GRAVITY_NORTH_WEST</property>
-  <signal name="destroy_event" handler="gtk_main_quit" last_modification_time="Fri, 16 Jul 2004 02:07:15 GMT"/>
+  <signal name="delete_event" handler="main_window_closed" last_modification_time="Sun, 25 Jul 2004 04:57:14 GMT"/>
 
   <child>
     <widget class="GtkVBox" id="vbox1">
@@ -941,6 +940,7 @@
 		  <property name="can_focus">True</property>
 		  <property name="relief">GTK_RELIEF_NORMAL</property>
 		  <property name="focus_on_click">True</property>
+		  <signal name="clicked" handler="show_about_dialog" last_modification_time="Sat, 24 Jul 2004 10:45:59 GMT"/>
 
 		  <child>
 		    <widget class="GtkAlignment" id="alignment17">
@@ -980,7 +980,7 @@
 			  <child>
 			    <widget class="GtkLabel" id="label60">
 			      <property name="visible">True</property>
-			      <property name="label" translatable="yes">_About UPS monitor...</property>
+			      <property name="label" translatable="yes">_About...</property>
 			      <property name="use_underline">True</property>
 			      <property name="use_markup">False</property>
 			      <property name="justify">GTK_JUSTIFY_LEFT</property>
@@ -1027,6 +1027,7 @@
 		  <property name="has_focus">True</property>
 		  <property name="relief">GTK_RELIEF_NORMAL</property>
 		  <property name="focus_on_click">True</property>
+		  <signal name="clicked" handler="open_preferences" last_modification_time="Sat, 24 Jul 2004 10:45:18 GMT"/>
 
 		  <child>
 		    <widget class="GtkAlignment" id="alignment9">
@@ -1100,6 +1101,7 @@
 		  <property name="use_stock">True</property>
 		  <property name="relief">GTK_RELIEF_NORMAL</property>
 		  <property name="focus_on_click">True</property>
+		  <signal name="clicked" handler="quit" last_modification_time="Sat, 24 Jul 2004 10:45:23 GMT"/>
 		</widget>
 	      </child>
 	    </widget>
@@ -1121,6 +1123,7 @@
 </widget>
 
 <widget class="GtkWindow" id="prefs_window">
+  <property name="can_focus">True</property>
   <property name="title" translatable="yes">Select UPS to monitor</property>
   <property name="type">GTK_WINDOW_TOPLEVEL</property>
   <property name="window_position">GTK_WIN_POS_NONE</property>
@@ -1132,6 +1135,8 @@
   <property name="skip_pager_hint">False</property>
   <property name="type_hint">GDK_WINDOW_TYPE_HINT_DIALOG</property>
   <property name="gravity">GDK_GRAVITY_NORTH_WEST</property>
+  <signal name="delete_event" handler="hide_prefs_window" last_modification_time="Sat, 24 Jul 2004 10:43:29 GMT"/>
+  <signal name="show" handler="prepare_prefs_window" last_modification_time="Sat, 24 Jul 2004 10:48:20 GMT"/>
 
   <child>
     <widget class="GtkTable" id="table5">
@@ -1147,13 +1152,14 @@
 	<widget class="GtkRadioButton" id="radio_network_upses">
 	  <property name="visible">True</property>
 	  <property name="can_focus">True</property>
-	  <property name="label" translatable="yes">Network address:</property>
+	  <property name="label" translatable="yes">_Network address:</property>
 	  <property name="use_underline">True</property>
 	  <property name="relief">GTK_RELIEF_NORMAL</property>
 	  <property name="focus_on_click">True</property>
-	  <property name="active">False</property>
+	  <property name="active">True</property>
 	  <property name="inconsistent">False</property>
 	  <property name="draw_indicator">True</property>
+	  <signal name="toggled" handler="process_radio_network_upses" last_modification_time="Sat, 24 Jul 2004 10:49:36 GMT"/>
 	</widget>
 	<packing>
 	  <property name="left_attach">0</property>
@@ -1168,7 +1174,6 @@
       <child>
 	<widget class="GtkEntry" id="ups_address">
 	  <property name="visible">True</property>
-	  <property name="sensitive">False</property>
 	  <property name="tooltip" translatable="yes">Type an UPS address in the format 'upsname@server'</property>
 	  <property name="can_focus">True</property>
 	  <property name="has_focus">True</property>
@@ -1178,7 +1183,7 @@
 	  <property name="text" translatable="yes"></property>
 	  <property name="has_frame">True</property>
 	  <property name="invisible_char" translatable="yes">*</property>
-	  <property name="activates_default">False</property>
+	  <property name="activates_default">True</property>
 	</widget>
 	<packing>
 	  <property name="left_attach">1</property>
@@ -1192,16 +1197,18 @@
       <child>
 	<widget class="GtkRadioButton" id="radio_local_upses">
 	  <property name="visible">True</property>
+	  <property name="sensitive">False</property>
 	  <property name="tooltip" translatable="yes">Lists all UPSes configured on this computer</property>
 	  <property name="can_focus">True</property>
-	  <property name="label" translatable="yes">Locally attached UPS:</property>
+	  <property name="label" translatable="yes">_Locally attached UPS:</property>
 	  <property name="use_underline">True</property>
 	  <property name="relief">GTK_RELIEF_NORMAL</property>
 	  <property name="focus_on_click">True</property>
-	  <property name="active">True</property>
+	  <property name="active">False</property>
 	  <property name="inconsistent">False</property>
 	  <property name="draw_indicator">True</property>
 	  <property name="group">radio_network_upses</property>
+	  <signal name="toggled" handler="process_radio_local_upses" last_modification_time="Sat, 24 Jul 2004 10:49:17 GMT"/>
 	</widget>
 	<packing>
 	  <property name="left_attach">0</property>
@@ -1245,7 +1252,7 @@
 	  <property name="text" translatable="yes"></property>
 	  <property name="has_frame">True</property>
 	  <property name="invisible_char" translatable="yes">*</property>
-	  <property name="activates_default">False</property>
+	  <property name="activates_default">True</property>
 	</widget>
 	<packing>
 	  <property name="left_attach">1</property>
@@ -1268,7 +1275,7 @@
 	  <property name="text" translatable="yes"></property>
 	  <property name="has_frame">True</property>
 	  <property name="invisible_char" translatable="yes">*</property>
-	  <property name="activates_default">False</property>
+	  <property name="activates_default">True</property>
 	</widget>
 	<packing>
 	  <property name="left_attach">1</property>
@@ -1284,13 +1291,14 @@
 	  <property name="visible">True</property>
 	  <property name="tooltip" translatable="yes">Use this section if the UPS server requires you to log on</property>
 	  <property name="can_focus">True</property>
-	  <property name="label" translatable="yes">Use the following credentials:</property>
+	  <property name="label" translatable="yes">Use the following cr_edentials:</property>
 	  <property name="use_underline">True</property>
 	  <property name="relief">GTK_RELIEF_NORMAL</property>
 	  <property name="focus_on_click">True</property>
 	  <property name="active">False</property>
 	  <property name="inconsistent">False</property>
 	  <property name="draw_indicator">True</property>
+	  <signal name="toggled" handler="update_auth_container_status" last_modification_time="Sat, 24 Jul 2004 10:48:51 GMT"/>
 	</widget>
 	<packing>
 	  <property name="left_attach">0</property>
@@ -1306,8 +1314,8 @@
 	<widget class="GtkLabel" id="label_username">
 	  <property name="visible">True</property>
 	  <property name="sensitive">False</property>
-	  <property name="label" translatable="yes">User name:</property>
-	  <property name="use_underline">False</property>
+	  <property name="label" translatable="yes">_User name:</property>
+	  <property name="use_underline">True</property>
 	  <property name="use_markup">False</property>
 	  <property name="justify">GTK_JUSTIFY_RIGHT</property>
 	  <property name="wrap">False</property>
@@ -1316,6 +1324,10 @@
 	  <property name="yalign">0.5</property>
 	  <property name="xpad">0</property>
 	  <property name="ypad">0</property>
+	  <property name="mnemonic_widget">username</property>
+	  <accessibility>
+	    <atkrelation target="username" type="label-for"/>
+	  </accessibility>
 	</widget>
 	<packing>
 	  <property name="left_attach">0</property>
@@ -1331,8 +1343,8 @@
 	<widget class="GtkLabel" id="label_password">
 	  <property name="visible">True</property>
 	  <property name="sensitive">False</property>
-	  <property name="label" translatable="yes">Password:</property>
-	  <property name="use_underline">False</property>
+	  <property name="label" translatable="yes">_Password:</property>
+	  <property name="use_underline">True</property>
 	  <property name="use_markup">False</property>
 	  <property name="justify">GTK_JUSTIFY_RIGHT</property>
 	  <property name="wrap">False</property>
@@ -1341,6 +1353,10 @@
 	  <property name="yalign">0.5</property>
 	  <property name="xpad">0</property>
 	  <property name="ypad">0</property>
+	  <property name="mnemonic_widget">password</property>
+	  <accessibility>
+	    <atkrelation target="password" type="label-for"/>
+	  </accessibility>
 	</widget>
 	<packing>
 	  <property name="left_attach">0</property>
@@ -1367,6 +1383,7 @@
 	      <property name="use_stock">True</property>
 	      <property name="relief">GTK_RELIEF_NORMAL</property>
 	      <property name="focus_on_click">True</property>
+	      <signal name="clicked" handler="process_prefs_cancel" last_modification_time="Sat, 24 Jul 2004 10:47:22 GMT"/>
 	    </widget>
 	  </child>
 
@@ -1378,6 +1395,7 @@
 	      <property name="can_focus">True</property>
 	      <property name="relief">GTK_RELIEF_NORMAL</property>
 	      <property name="focus_on_click">True</property>
+	      <signal name="clicked" handler="process_prefs_ok" last_modification_time="Sat, 24 Jul 2004 10:46:40 GMT"/>
 
 	      <child>
 		<widget class="GtkAlignment" id="alignment4">
@@ -1478,6 +1496,7 @@
   <property name="skip_pager_hint">False</property>
   <property name="type_hint">GDK_WINDOW_TYPE_HINT_DIALOG</property>
   <property name="gravity">GDK_GRAVITY_NORTH_WEST</property>
+  <signal name="delete_event" handler="dismiss_error_dialog" last_modification_time="Sat, 24 Jul 2004 10:44:15 GMT"/>
 
   <child>
     <widget class="GtkVBox" id="vbox6">
@@ -1559,6 +1578,7 @@
 	      <property name="use_stock">True</property>
 	      <property name="relief">GTK_RELIEF_NORMAL</property>
 	      <property name="focus_on_click">True</property>
+	      <signal name="clicked" handler="dismiss_error_dialog" last_modification_time="Sat, 24 Jul 2004 10:47:37 GMT"/>
 	    </widget>
 	  </child>
 	</widget>
@@ -1576,7 +1596,7 @@
   <property name="title" translatable="yes">Information</property>
   <property name="type">GTK_WINDOW_TOPLEVEL</property>
   <property name="window_position">GTK_WIN_POS_NONE</property>
-  <property name="modal">True</property>
+  <property name="modal">False</property>
   <property name="resizable">False</property>
   <property name="destroy_with_parent">False</property>
   <property name="decorated">True</property>
@@ -1584,6 +1604,7 @@
   <property name="skip_pager_hint">False</property>
   <property name="type_hint">GDK_WINDOW_TYPE_HINT_DIALOG</property>
   <property name="gravity">GDK_GRAVITY_NORTH_WEST</property>
+  <signal name="delete_event" handler="dismiss_info_dialog" last_modification_time="Sat, 24 Jul 2004 10:43:56 GMT"/>
 
   <child>
     <widget class="GtkVBox" id="vbox7">
@@ -1665,6 +1686,7 @@
 	      <property name="use_stock">True</property>
 	      <property name="relief">GTK_RELIEF_NORMAL</property>
 	      <property name="focus_on_click">True</property>
+	      <signal name="clicked" handler="dismiss_info_dialog" last_modification_time="Sat, 24 Jul 2004 10:47:13 GMT"/>
 	    </widget>
 	  </child>
 	</widget>
@@ -1682,7 +1704,7 @@
   <property name="title" translatable="yes">About UPS monitor</property>
   <property name="type">GTK_WINDOW_TOPLEVEL</property>
   <property name="window_position">GTK_WIN_POS_NONE</property>
-  <property name="modal">True</property>
+  <property name="modal">False</property>
   <property name="resizable">False</property>
   <property name="destroy_with_parent">False</property>
   <property name="decorated">True</property>
@@ -1690,6 +1712,7 @@
   <property name="skip_pager_hint">False</property>
   <property name="type_hint">GDK_WINDOW_TYPE_HINT_DIALOG</property>
   <property name="gravity">GDK_GRAVITY_NORTH_WEST</property>
+  <signal name="delete_event" handler="dismiss_about_dialog" last_modification_time="Sat, 24 Jul 2004 10:42:31 GMT"/>
 
   <child>
     <widget class="GtkVBox" id="vbox8">
@@ -1887,6 +1910,7 @@ A graphical application to monitor the status of your UPS</property>
 		  <property name="can_focus">True</property>
 		  <property name="relief">GTK_RELIEF_NONE</property>
 		  <property name="focus_on_click">True</property>
+		  <signal name="clicked" handler="open_gpl" last_modification_time="Sat, 24 Jul 2004 10:50:53 GMT"/>
 
 		  <child>
 		    <widget class="GtkAlignment" id="alignment21">
@@ -1966,6 +1990,7 @@ A graphical application to monitor the status of your UPS</property>
 		  <property name="can_focus">True</property>
 		  <property name="relief">GTK_RELIEF_NONE</property>
 		  <property name="focus_on_click">True</property>
+		  <signal name="clicked" handler="open_author_website" last_modification_time="Sat, 24 Jul 2004 10:51:28 GMT"/>
 
 		  <child>
 		    <widget class="GtkAlignment" id="alignment20">
@@ -2040,6 +2065,7 @@ A graphical application to monitor the status of your UPS</property>
 		  <property name="can_focus">True</property>
 		  <property name="relief">GTK_RELIEF_NONE</property>
 		  <property name="focus_on_click">True</property>
+		  <signal name="clicked" handler="open_website" last_modification_time="Sat, 24 Jul 2004 10:51:59 GMT"/>
 
 		  <child>
 		    <widget class="GtkAlignment" id="alignment18">
@@ -2114,6 +2140,7 @@ A graphical application to monitor the status of your UPS</property>
 		  <property name="can_focus">True</property>
 		  <property name="relief">GTK_RELIEF_NONE</property>
 		  <property name="focus_on_click">True</property>
+		  <signal name="clicked" handler="send_mail_to_author" last_modification_time="Sat, 24 Jul 2004 10:51:45 GMT"/>
 
 		  <child>
 		    <widget class="GtkAlignment" id="alignment19">
@@ -2240,6 +2267,7 @@ A graphical application to monitor the status of your UPS</property>
 		  <property name="use_stock">True</property>
 		  <property name="relief">GTK_RELIEF_NORMAL</property>
 		  <property name="focus_on_click">True</property>
+		  <signal name="clicked" handler="dismiss_about_dialog" last_modification_time="Sat, 24 Jul 2004 10:40:50 GMT"/>
 		</widget>
 	      </child>
 	    </widget>
@@ -2259,7 +2287,7 @@ A graphical application to monitor the status of your UPS</property>
   <property name="title" translatable="yes">Warning</property>
   <property name="type">GTK_WINDOW_TOPLEVEL</property>
   <property name="window_position">GTK_WIN_POS_NONE</property>
-  <property name="modal">True</property>
+  <property name="modal">False</property>
   <property name="resizable">False</property>
   <property name="destroy_with_parent">False</property>
   <property name="decorated">True</property>
@@ -2267,6 +2295,7 @@ A graphical application to monitor the status of your UPS</property>
   <property name="skip_pager_hint">False</property>
   <property name="type_hint">GDK_WINDOW_TYPE_HINT_DIALOG</property>
   <property name="gravity">GDK_GRAVITY_NORTH_WEST</property>
+  <signal name="delete_event" handler="dismiss_warning_dialog" last_modification_time="Sat, 24 Jul 2004 10:44:26 GMT"/>
 
   <child>
     <widget class="GtkVBox" id="vbox11">
@@ -2348,6 +2377,7 @@ A graphical application to monitor the status of your UPS</property>
 	      <property name="use_stock">True</property>
 	      <property name="relief">GTK_RELIEF_NORMAL</property>
 	      <property name="focus_on_click">True</property>
+	      <signal name="clicked" handler="dismiss_warning_dialog" last_modification_time="Sat, 24 Jul 2004 10:48:03 GMT"/>
 	    </widget>
 	  </child>
 	</widget>
