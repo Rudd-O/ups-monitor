@@ -8,10 +8,6 @@ remember recently successfully monitored upses show them in a list box
 command-line ups specification: DONE
 lacks --help and GTK command line processing
 
-icono del WM y del taskbar! (para todas las ventanas de UPS monitor)
-
-systray icon and passive status notifications "you are now on battery - you are back to wall power" and show/hide main window
-
 event log window?
 
 mover headers a GtkHeaders instead of GtkLabels?
@@ -21,9 +17,3 @@ gnome support?  #ifdef'd ?
 show the true Description field (ACP BLABLA) instead of the ups name (apc) if available
 
 
-"Monitoring XXXXX, attached to localhost"
-
-perhaps replace all instances of localhost with "this computer".  Perhaps parse 127.0.0.1 and localhost.localdomain => localhost, so in the config file it says localhost always and the former replacement goes right =) and is more consistent.
-
-
-Auto-display information if there is a single UPS running in the localhost upsd server
