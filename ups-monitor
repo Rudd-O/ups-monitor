@@ -719,7 +719,6 @@ class UPSMonitor (gtk.glade.XML):
 		return self.show_dialog("warning",message,title)
 	
 	def show_about_dialog(self,caller=None):
-		self.save_session()
 		self.get_widget("about_dialog").present()
 
 	def dismiss_error_dialog(self,caller=None,e=None):
