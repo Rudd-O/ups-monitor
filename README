@@ -15,7 +15,7 @@ This software requires:
 - Python
 - the Python GTK+ 2 bindings, and Glade bindings
 
-To install this software, type Â'make install' while
+To install this software, type ï¿½make install' while
 on the command line.  You will probably need
 administrative privileges to perform a system-wide
 installation.  Check the Makefile for variables you can
@@ -24,7 +24,7 @@ control to modify installation directories.
 Direct any questions to Manuel Amador (Rudd-O).  Don't
 forget to visit this project's Web site first:
 
-http://www.amautacorp.com/projects/ups-monitor/
+http://www.amautacorp.com/staff/Rudd-O/ups-monitor/
 
 to solve any doubts or questions you might have.
 

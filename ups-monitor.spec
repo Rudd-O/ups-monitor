@@ -12,7 +12,7 @@ Release:        %rel
 Copyright:      Amautacorp S.A. 
 Group:          System/Monitoring
 Source:         %{name}-%ver.tar.gz
-URL:            http://www.amautacorp.com/
+URL:            http://www.amautacorp.com/staff/Rudd-O/ups-monitor/
 BuildRoot:      %{_tmppath}/build-%{name}-%{ver}
 Requires:       pygtk2 pygtk2-libglade
 BuildArch:      noarch

@@ -1769,13 +1769,13 @@ This software is under the GPL.  See the file COPYING.</property>
 	<widget class="GtkLabel" id="label57">
 	  <property name="visible">True</property>
 	  <property name="can_focus">True</property>
-	  <property name="label" translatable="yes">Web site: http://www.amautacorp.com/projects/ups-monitor/</property>
+	  <property name="label" translatable="yes">http://www.amautacorp.com/staff/Rudd-O/ups-monitor/</property>
 	  <property name="use_underline">False</property>
 	  <property name="use_markup">False</property>
-	  <property name="justify">GTK_JUSTIFY_LEFT</property>
+	  <property name="justify">GTK_JUSTIFY_CENTER</property>
 	  <property name="wrap">False</property>
 	  <property name="selectable">True</property>
-	  <property name="xalign">0</property>
+	  <property name="xalign">0.5</property>
 	  <property name="yalign">0.5</property>
 	  <property name="xpad">0</property>
 	  <property name="ypad">0</property>
