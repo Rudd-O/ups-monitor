@@ -26,7 +26,10 @@ UPS monitor requires a working Network UPS Tools (nut) server.
 
 
 %changelog
-* Wed Jul 21 2004 Manuel Amador (Rudd-O) <rudd-o@amautacorp.com> 0.1-0
+* Wed Jul 21 2004 Manuel Amador (Rudd-O) <rudd-o@amautacorp.com> 0.2-1
+- HIGified the UI after Eugenia Loli-Queru's suggestions
+
+* Wed Jul 21 2004 Manuel Amador (Rudd-O) <rudd-o@amautacorp.com> 0.1-1
 - spec file improvements
 
 * Sat Jul 17 2004 Manuel Amador (Rudd-O) <rudd-o@amautacorp.com> 0.1-0
