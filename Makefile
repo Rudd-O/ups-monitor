@@ -37,7 +37,7 @@ install:
 	$(INSTALL) -D -m 644 ups-monitor.png $(RPM_BUILD_ROOT)$(SHAREDIR)/ups-monitor.png
 	$(INSTALL) -D -m 644 ups-monitor.png $(RPM_BUILD_ROOT)$(PIXMAPDIR)/ups-monitor.png
 	$(INSTALL) -D -m 644 version $(RPM_BUILD_ROOT)$(SHAREDIR)/version
-	desktop-file-install --vendor amauta --dir $(RPM_BUILD_ROOT)$(PREFIX)/share/applications ups-monitor.desktop
+	desktop-file-install --vendor rudd-o --dir $(RPM_BUILD_ROOT)$(PREFIX)/share/applications ups-monitor.desktop
 
 dist:
 	make clean

@@ -1,11 +1,11 @@
 [Desktop Entry]
 Encoding=UTF-8
 Name=UPS monitor
-Name[es]=Monitor de UPS
-Comment[es]=Muestra el estado y la carga del UPS
+Comment=View UPS battery level and power source
 GenericName=UPS monitor
-GenericName[es]=Monitor de UPS
-Comment=Display UPS status and load
+Name[es]=Monitor de SAI
+Comment[es]=Ver el nivel de carga del SAI y la fuente de alimentación 
+GenericName[es]=Monitor de SAI
 Exec=ups-monitor
 Icon=ups-monitor.png
 Terminal=false

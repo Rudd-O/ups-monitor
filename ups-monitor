@@ -17,6 +17,20 @@ from select import select
 import asynchat
 import asyncore
 
+def get_shared_path():
+	testfile = 'version'
+	sharedirs = [".",os.path.join(os.path.dirname(sys.argv[0]),"../share/ups-monitor")]
+	sharepath = None
+	for sharedir in sharedirs:
+		fname = path.join(path.abspath(sharedir),testfile)
+		if path.exists(fname):
+			sharepath = path.abspath(sharedir)
+			break
+	
+	if sharepath is None:
+		raise Exception, "UPS monitor shared files " + testfile + " cannot be found in any of " + str(sharedirs) + " default paths"
+	
+	return sharepath
 
 
 class AuxiliaryProgramNotFound(Exception):
@@ -30,6 +44,17 @@ class NoBrowserError(AuxiliaryProgramNotFound):
 	
 class NoMailClientError(AuxiliaryProgramNotFound):
 	pass
+
+def get_full_path_to_program(program):
+	possible_browsers = [program]
+	for browser in possible_browsers:
+		command = os.popen("LC_ALL=C which " + browser + " 2> /dev/null")
+		r = command.readlines()
+		command.close()
+		if r:
+			return strip(r[0])
+	return None
+
 
 
 def get_browser():
@@ -95,7 +120,14 @@ def read_ups_config(file):
 		
 	return upses
 	
-	
+def is_computer_name_local(hostname):
+	if hostname == "localhost" or hostname == "localhost.localdomain" or hostname == "127.0.0.1":
+		return True
+
+def get_friendly_computer_name(hostname):
+	if is_computer_name_local(hostname):
+		return "this computer"
+	return hostname	
 	
 class UPSError(Exception):
 	def __init__(self, value):
@@ -119,6 +151,15 @@ class UPSNotFoundError(UPSError):
 class LostConnection(UPSError):
 	pass
 
+class UPSMonitorError(Exception):
+	def __init__(self, value):
+		self.value = value
+	def __str__(self):
+		return repr(self.value)
+
+class NoLastUPSError(UPSMonitorError):
+	pass
+
 
 
 def working(e):
@@ -136,14 +177,12 @@ class UPSSocket(socket):
 		buf = data
 		while len(buf) > 0:
 			select([],[self],[self])
-# 			print "Ready to send data"
 			try:
 				sent = self.send(data)
 			except Exception:
 				raise LostConnection, "The network connection to the UPS is lost"
 			if sent == 0:
 				raise LostConnection, "The network connection to the UPS is lost"
-# 			print "Sending data: " + buf
 			buf = buf[sent:]
 			
 	def get_data_until(self,terminators):
@@ -153,11 +192,9 @@ class UPSSocket(socket):
 		found = False
 		while found == False:
 			select([self],[],[self])
-# 			print "Ready to receive data"
 			rcvd = self.recv(8192)
 			if len(rcvd) < 1:
 				raise LostConnection, "The network connection to the UPS is lost"
-# 			print "Receiving data: " + rcvd
 			buf = buf + rcvd
 			for delimiter in terminators:
 				if find(buf,delimiter)  != -1:
@@ -314,10 +351,6 @@ class UPS:
 		
 		for line in linelist:
 			key, value = line
-# 			value = re.sub(r'(.*): ', r'', line)
-# 			key = re.sub(r': (.*)', r'', line)
-			#key = strip(key)
-			#value = strip(value)
 			if key == "battery.charge":
 				self.battery_charge = float(value) / 100
 			if key == "battery.runtime":
@@ -337,7 +370,6 @@ class UPS:
 			if key == "ups.serial":
 				self.serial = value
 			if key == "ups.status":
-# 				print "UPS status line: " + value
 				self.battery_status = "NORMAL"
 				self.ups_status = "NORMAL"
 				if find(value,"OL") != -1:
@@ -379,10 +411,6 @@ class UPS:
 		return self.password
 
 
-# for a in getmembers(gtk.glade.XML):
-#       print a
-#       
-# help(gtk.glade.XML)
 
 class UPSPollerThread(Thread):
 	ups = None
@@ -407,7 +435,6 @@ class UPSPollerThread(Thread):
 				return
 			try:
 				self.poll_count = self.poll_count + 1
-# 				print "Polling UPS, iteration " + str(self.poll_count)
 				self.ups.poll()
 			except LostConnection, e:
 				print "Error polling UPS:\n" +str(e)
@@ -439,8 +466,12 @@ class UPSMonitor (gtk.glade.XML):
 		self.load_config()
 	
 	def save_session(self):
-		os.system("dcop ksmserver ksmserver saveCurrentSession")
-		os.system("gnome-session-save")
+		program = get_full_path_to_program("dcop")
+		if program:
+			os.spawnl(os.P_NOWAIT,program,"dcop","ksmserver","ksmserver","saveCurrentSession")
+		program = get_full_path_to_program("gnome-session-save")
+		if program:
+			os.spawnl(os.P_NOWAIT,program,"gnome-session-save")
 	
 	def get_version(self):
 		file = os.path.join(self.sharepath,"version")
@@ -459,12 +490,14 @@ class UPSMonitor (gtk.glade.XML):
 		self.get_widget("prefs_cancel").connect("clicked",self.process_prefs_cancel)
 		self.get_widget("info_dismiss").connect("clicked",self.dismiss_info_dialog)
 		self.get_widget("error_dismiss").connect("clicked",self.dismiss_error_dialog)
+		self.get_widget("warning_dismiss").connect("clicked",self.dismiss_warning_dialog)
 		self.get_widget("about_dismiss").connect("clicked",self.dismiss_about_dialog)
 		self.get_widget("prefs_window").connect("show",self.prepare_prefs_window)
 		self.get_widget("authenticate").connect("toggled",self.update_auth_container_status)
 		self.get_widget("prefs_window").connect("delete_event",self.hide_prefs_window)
 		self.get_widget("info_dialog").connect("delete_event",self.dismiss_info_dialog)
 		self.get_widget("error_dialog").connect("delete_event",self.dismiss_error_dialog)
+		self.get_widget("warning_dialog").connect("delete_event",self.dismiss_warning_dialog)
 		self.get_widget("about_dialog").connect("delete_event",self.dismiss_about_dialog)
 		self.get_widget("radio_local_upses").connect("toggled",self.process_radio_local_upses)
 		self.get_widget("radio_network_upses").connect("toggled",self.process_radio_network_upses)
@@ -487,7 +520,7 @@ class UPSMonitor (gtk.glade.XML):
 		
 
 		
-		# make the combo useful
+		# make the combo useful (actually, create it)
 		localupses = None
 		
 		combobox = self.get_widget("hbox_local_upses").get_data("combo")
@@ -500,15 +533,16 @@ class UPSMonitor (gtk.glade.XML):
 		try:
 			localupses = read_ups_config("/etc/ups/ups.conf").keys()
 		except Exception:
-			print "No UPS config file /etc/ups/ups.conf found"
+			#print "No UPS config file /etc/ups/ups.conf found"
+			pass
 		
 		if not localupses:
 			self.get_widget("radio_network_upses").set_active(True)
 			self.get_widget("radio_local_upses").set_sensitive(False)
 		else:
-# 			pass
  			combobox.set_popdown_strings(localupses)
 		
+		self.get_widget("radio_local_upses").set_active(True)
 				
 	def disable_display(self):
 		self.get_widget("display").set_sensitive(False)
@@ -551,6 +585,14 @@ class UPSMonitor (gtk.glade.XML):
 		self.get_widget("info_message").set_markup(title + message)
 		self.get_widget("info_dialog").show()
 	
+	def show_warning_dialog(self,message,title=None):
+		if title:
+			title = "<span weight='bold'><big>" + title + "</big></span>\n\n"
+		else:
+			title = ""
+		self.get_widget("warning_message").set_markup(title + message)
+		self.get_widget("warning_dialog").show()
+	
 	def show_about_dialog(self,caller=None):
 		# this has only been prototyped needs UI
 		self.get_widget("about_dialog").show()
@@ -565,6 +607,10 @@ class UPSMonitor (gtk.glade.XML):
 		
 	def dismiss_info_dialog(self,caller=None,e=None):
 		self.get_widget("info_dialog").hide()
+		return True
+		
+	def dismiss_warning_dialog(self,caller=None,e=None):
+		self.get_widget("warning_dialog").hide()
 		return True
 		
 	def hide_prefs_window(self,caller=None,e=None):
@@ -590,7 +636,7 @@ class UPSMonitor (gtk.glade.XML):
 			fn = path.expanduser("~") + "/.ups-monitor.conf"
 			f = open(fn,"r")
 		except IOError, e:
-			return
+			raise NoLastUPSError, "No last UPS to monitor"
 		lines = f.readlines()
 		for line in lines:
 			key, value = split(line,"=")
@@ -641,23 +687,23 @@ class UPSMonitor (gtk.glade.XML):
 			self.update_statusbar("Connecting to  <b>" + ups_address + "</b>...")
 			u = UPS(ups_address,username,password)
 		except InvalidAddressError, e:
-# 			self.show_prefs_window()
-			self.show_error_dialog("The UPS address " + ups_address + " cannot be contacted or is incorrect.  Please make sure that the server address is correct, the UPS server is working and it has an active network connection.","Cannot monitor " + ups_address)
+			self.show_error_dialog("The UPS address <b>" + ups_address + "</b> cannot be contacted or is incorrect.  Please make sure that the server address is correct, the UPS server is working and it has an active network connection.","Cannot monitor " + ups_address)
+			self.update_statusbar("Cannot monitor <b>" + ups_address + "</b>",False)
 			return False
 		except AuthenticationFailedError, e:
-# 			self.show_prefs_window()
-			self.show_error_dialog("The supplied user name or password for " + ups_address + " is incorrect.  Please make sure you typed the password correctly.  If all else fails, contact your network UPS administrator.", "Cannot monitor " + ups_address)
+			self.show_error_dialog("The supplied user name or password for <b>" + ups_address + "</b> is incorrect.  Please make sure you typed the password correctly.  If all else fails, contact your network UPS administrator.", "Cannot monitor " + ups_address)
+			self.update_statusbar("Cannot monitor <b>" + ups_address + "</b>",False)
 			return False
 		except UPSNotFoundError, e:
-# 			self.show_prefs_window()
-			self.show_error_dialog("UPS " + ups_address + " is not attached to the server.  Please confirm that you entered the correct UPS name." , "Cannot monitor " + ups_address)
+			self.show_error_dialog("UPS <b>" + ups_address + "</b> is not attached to the server.  Please confirm that you entered the correct UPS name." , "Cannot monitor " + ups_address)
+			self.update_statusbar("Cannot monitor <b>" + ups_address + "</b>",False)
 			return False
 		
  		if self.pollerthread:
  			self.pollerthread.set_ups(None)
 		
 		self.ups = u
- 		self.update_statusbar("Connected to: <b>"  + u.get_address() + "</b>")
+ 		self.update_statusbar("Connected to <b>"  + get_friendly_computer_name(u.get_address()) + "</b>")
 		
  		self.pollerthread= UPSPollerThread(u)
  		self.pollerthread.start()
@@ -671,7 +717,8 @@ class UPSMonitor (gtk.glade.XML):
 
 	def refresh_display(self):
 		if self.pollerthread is None or not self.pollerthread.isAlive():
-			self.show_error_dialog("The network connection to UPS " + self.ups.get_address() +" is lost.  Check for network availability and ensure the UPS server is still online and running.","UPS " + self.ups.get_address() + " is no longer being monitored")
+			self.show_error_dialog("The network connection to <b>" + get_friendly_computer_name(self.ups.get_host()) +"</b> is lost.  Check for network availability and ensure the UPS server is still online and running.","UPS " + self.ups.get_address() + " is no longer being monitored")
+			self.update_statusbar("Cannot continue monitoring <b>" + self.ups.get_address() + "</b>",False)
 			self.disable_display()
 			self.ups = None
 			self.timeout_id = None
@@ -680,13 +727,13 @@ class UPSMonitor (gtk.glade.XML):
 		u = self.ups
 		
 		if u.status == "OK":
-	 		self.update_statusbar("Connected to: <b>"  + u.get_host() + "</b>      UPS: <b>" + u.get_ups_name() + "</b>")
+	 		self.update_statusbar("Monitoring UPS <b>"  + u.get_ups_name()  + "</b>, attached to <b>" + get_friendly_computer_name(u.get_host())  + "</b>")
 			self.enable_display()
 		if u.status == "DRIVER-NOT-CONNECTED":
-	 		self.update_statusbar("Connected to: <b>"  + u.get_host() + "</b>      Communications with UPS <b>" + u.get_ups_name() + " lost</b>",False)
+	 		self.update_statusbar(get_friendly_computer_name(u.get_host()).capitalize() + " lost contact with UPS <b>" + u.get_ups_name() + "</b>", False)
 			self.disable_display()
 		if u.status == "DATA-STALE":
-	 		self.update_statusbar("Connected to: <b>"  + u.get_host() + "</b>      Information for UPS <b>" + u.get_ups_name() + "</b> is stale",False)
+	 		self.update_statusbar(get_friendly_computer_name(u.get_host()).capitalize() + " has stale information about UPS <b>"  + u.get_ups_name()  + "</b>", False)
 			self.disable_display()
 					
 		if u.manufacturer:
@@ -703,15 +750,17 @@ class UPSMonitor (gtk.glade.XML):
 			self.get_widget("label_serial").set_text(u.serial)
 		else:
 			self.get_widget("label_serial").set_text("(unknown)")
-		
+
 		if u.power_source == "AC":
- 			self.little_time_left_warning = None
+			if self.little_time_left_warning:
+				self.dismiss_warning_dialog()
+	 			self.little_time_left_warning = None
 			self.get_widget("label_power_source").set_text("Wall socket")
 		elif u.power_source == "BAT":
 			self.get_widget("label_power_source").set_text("Battery backup")
 			if self.last_power_source == "AC":
 				self.save_session()
-				self.update_statusbar("System is now on battery backup.  Your session was saved.")
+			self.update_statusbar(get_friendly_computer_name(u.get_host()).capitalize() + " is now <b>on battery backup</b> - your session was saved")
 		else:
 			self.get_widget("label_power_source").set_text("(unknown)")
 			
@@ -769,8 +818,10 @@ class UPSMonitor (gtk.glade.XML):
 		if u.remaining_time:
 			self.get_widget("meter_remaining_time").set_text(str(u.remaining_time) + " seconds")
 			self.get_widget("meter_remaining_time").set_fraction(float(u.remaining_time)/u.max_remaining_time)
-			if u.power_source == "BAT" and u.remaining_time < 60 and self.little_time_left_warning is None:
-				self.show_info_dialog(u.get_host().capitalize() + " will power off soon to prevent long-term UPS battery damage, unless utility power returns. Save any open documents and close your session.","Less than a minute of battery power remaining")
+			if u.power_source == "BAT" and u.remaining_time < 60:
+				self.update_statusbar("<b>Less than a minute</b> of battery power remaining")
+				if self.little_time_left_warning is None:
+					self.show_warning_dialog(get_friendly_computer_name(u.get_host()).capitalize() + " will power off soon to prevent long-term UPS battery damage, unless utility power returns. Save any open documents and close your session.","Less than a minute of battery power remaining")
 				self.little_time_left_warning = True
 				
 		else:
@@ -781,7 +832,10 @@ class UPSMonitor (gtk.glade.XML):
 			
 						
 	def prepare_prefs_window(self,caller):
-		self.get_widget("ups_address").grab_focus()
+		if self.get_widget("radio_local_upses").get_active():
+			self.get_widget("hbox_local_upses").get_data("combo").grab_focus()
+		else:
+			self.get_widget("ups_address").grab_focus()
 								
 	def update_auth_container_status(self,caller):
 		if self.get_widget("authenticate").get_active():
@@ -852,7 +906,6 @@ class UPSMonitor (gtk.glade.XML):
 			pass
 		
 		
-# print locals()
 		
 
 
@@ -862,30 +915,22 @@ if len(sys.argv) > 1:
 	upsaddress = sys.argv[1]
 
 
-def get_shared_path():
-	testfile = 'version'
-	sharedirs = [".",os.path.join(os.path.dirname(sys.argv[0]),"../share/ups-monitor")]
-	sharepath = None
-	for sharedir in sharedirs:
-		fname = path.join(path.abspath(sharedir),testfile)
-		if path.exists(fname):
-			sharepath = path.abspath(sharedir)
-			break
-	
-	if sharepath is None:
-		raise Exception, "UPS monitor shared files " + testfile + " cannot be found in any of " + str(sharedirs) + " default paths"
-	
-	return sharepath
-	
-
 app = UPSMonitor(get_shared_path())
 if upsaddress:
 	app.monitor(upsaddress,None,None)
 else:
-	app.monitor_last_ups()
-
+	try:
+		app.monitor_last_ups()
+	except NoLastUPSError, e:
+		localupses = []
+		try:
+			localupses = read_ups_config("/etc/ups/ups.conf").keys()
+		except Exception, e:
+			pass
+		if len(localupses) == 1:
+			app.monitor(localupses[0] + "@localhost",None,None)
 
 
 gtk.threads_init()
- 
+
 gtk.main()

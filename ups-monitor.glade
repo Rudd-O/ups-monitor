@@ -31,7 +31,7 @@
 	  <property name="visible">True</property>
 	  <property name="xalign">0.5</property>
 	  <property name="yalign">0.5</property>
-	  <property name="xscale">0</property>
+	  <property name="xscale">1</property>
 	  <property name="yscale">1</property>
 	  <property name="top_padding">0</property>
 	  <property name="bottom_padding">0</property>
@@ -52,7 +52,7 @@
 
 		  <child>
 		    <widget class="GtkImage" id="status_icon_ok">
-		      <property name="stock">gtk-ok</property>
+		      <property name="stock">gtk-network</property>
 		      <property name="icon_size">2</property>
 		      <property name="xalign">0.5</property>
 		      <property name="yalign">0.5</property>
@@ -92,21 +92,21 @@
 	      <child>
 		<widget class="GtkLabel" id="statusbar">
 		  <property name="visible">True</property>
-		  <property name="label" translatable="yes">Welcome to UPS monitor.  Click the Select UPS... button to monitor a UPS.</property>
+		  <property name="label" translatable="yes">Click the &lt;b&gt;Select UPS...&lt;/b&gt; button to start monitoring your UPS</property>
 		  <property name="use_underline">False</property>
 		  <property name="use_markup">True</property>
-		  <property name="justify">GTK_JUSTIFY_CENTER</property>
-		  <property name="wrap">True</property>
+		  <property name="justify">GTK_JUSTIFY_LEFT</property>
+		  <property name="wrap">False</property>
 		  <property name="selectable">False</property>
-		  <property name="xalign">0.5</property>
+		  <property name="xalign">0</property>
 		  <property name="yalign">0.5</property>
 		  <property name="xpad">0</property>
 		  <property name="ypad">0</property>
 		</widget>
 		<packing>
 		  <property name="padding">0</property>
-		  <property name="expand">False</property>
-		  <property name="fill">False</property>
+		  <property name="expand">True</property>
+		  <property name="fill">True</property>
 		</packing>
 	      </child>
 	    </widget>
@@ -1201,6 +1201,7 @@
 	  <property name="active">True</property>
 	  <property name="inconsistent">False</property>
 	  <property name="draw_indicator">True</property>
+	  <property name="group">radio_network_upses</property>
 	</widget>
 	<packing>
 	  <property name="left_attach">0</property>
@@ -2177,6 +2178,29 @@ A graphical application to monitor the status of your UPS</property>
       </child>
 
       <child>
+	<widget class="GtkLabel" id="label72">
+	  <property name="visible">True</property>
+	  <property name="label" translatable="yes">&lt;b&gt;Special thanks to:&lt;/b&gt;
+
+	Eugenia Loli-Queru, for usability and aspect improvements</property>
+	  <property name="use_underline">False</property>
+	  <property name="use_markup">True</property>
+	  <property name="justify">GTK_JUSTIFY_LEFT</property>
+	  <property name="wrap">True</property>
+	  <property name="selectable">False</property>
+	  <property name="xalign">0</property>
+	  <property name="yalign">0.5</property>
+	  <property name="xpad">0</property>
+	  <property name="ypad">0</property>
+	</widget>
+	<packing>
+	  <property name="padding">0</property>
+	  <property name="expand">True</property>
+	  <property name="fill">True</property>
+	</packing>
+      </child>
+
+      <child>
 	<widget class="GtkHSeparator" id="hseparator3">
 	  <property name="visible">True</property>
 	</widget>
@@ -2225,6 +2249,112 @@ A graphical application to monitor the status of your UPS</property>
 	  <property name="padding">0</property>
 	  <property name="expand">False</property>
 	  <property name="fill">True</property>
+	</packing>
+      </child>
+    </widget>
+  </child>
+</widget>
+
+<widget class="GtkWindow" id="warning_dialog">
+  <property name="title" translatable="yes">Warning</property>
+  <property name="type">GTK_WINDOW_TOPLEVEL</property>
+  <property name="window_position">GTK_WIN_POS_NONE</property>
+  <property name="modal">True</property>
+  <property name="resizable">False</property>
+  <property name="destroy_with_parent">False</property>
+  <property name="decorated">True</property>
+  <property name="skip_taskbar_hint">False</property>
+  <property name="skip_pager_hint">False</property>
+  <property name="type_hint">GDK_WINDOW_TYPE_HINT_DIALOG</property>
+  <property name="gravity">GDK_GRAVITY_NORTH_WEST</property>
+
+  <child>
+    <widget class="GtkVBox" id="vbox11">
+      <property name="border_width">12</property>
+      <property name="visible">True</property>
+      <property name="homogeneous">False</property>
+      <property name="spacing">12</property>
+
+      <child>
+	<widget class="GtkHBox" id="hbox32">
+	  <property name="visible">True</property>
+	  <property name="homogeneous">False</property>
+	  <property name="spacing">12</property>
+
+	  <child>
+	    <widget class="GtkImage" id="image18">
+	      <property name="visible">True</property>
+	      <property name="stock">gtk-dialog-warning</property>
+	      <property name="icon_size">6</property>
+	      <property name="xalign">0.5</property>
+	      <property name="yalign">0.5</property>
+	      <property name="xpad">0</property>
+	      <property name="ypad">0</property>
+	    </widget>
+	    <packing>
+	      <property name="padding">0</property>
+	      <property name="expand">False</property>
+	      <property name="fill">True</property>
+	    </packing>
+	  </child>
+
+	  <child>
+	    <widget class="GtkLabel" id="warning_message">
+	      <property name="visible">True</property>
+	      <property name="label" translatable="yes"></property>
+	      <property name="use_underline">False</property>
+	      <property name="use_markup">True</property>
+	      <property name="justify">GTK_JUSTIFY_LEFT</property>
+	      <property name="wrap">True</property>
+	      <property name="selectable">False</property>
+	      <property name="xalign">0.5</property>
+	      <property name="yalign">0.5</property>
+	      <property name="xpad">0</property>
+	      <property name="ypad">0</property>
+	    </widget>
+	    <packing>
+	      <property name="padding">0</property>
+	      <property name="expand">True</property>
+	      <property name="fill">True</property>
+	    </packing>
+	  </child>
+	</widget>
+	<packing>
+	  <property name="padding">0</property>
+	  <property name="expand">True</property>
+	  <property name="fill">True</property>
+	</packing>
+      </child>
+
+      <child>
+	<widget class="GtkAlignment" id="alignment25">
+	  <property name="visible">True</property>
+	  <property name="xalign">1</property>
+	  <property name="yalign">0.5</property>
+	  <property name="xscale">0</property>
+	  <property name="yscale">1</property>
+	  <property name="top_padding">0</property>
+	  <property name="bottom_padding">0</property>
+	  <property name="left_padding">0</property>
+	  <property name="right_padding">0</property>
+
+	  <child>
+	    <widget class="GtkButton" id="warning_dismiss">
+	      <property name="width_request">100</property>
+	      <property name="visible">True</property>
+	      <property name="can_focus">True</property>
+	      <property name="has_focus">True</property>
+	      <property name="label">gtk-close</property>
+	      <property name="use_stock">True</property>
+	      <property name="relief">GTK_RELIEF_NORMAL</property>
+	      <property name="focus_on_click">True</property>
+	    </widget>
+	  </child>
+	</widget>
+	<packing>
+	  <property name="padding">0</property>
+	  <property name="expand">False</property>
+	  <property name="fill">False</property>
 	</packing>
       </child>
     </widget>

@@ -1,13 +1,21 @@
 UPS monitor
 by Manuel Amador (Rudd-O)
 rudd-o@amautacorp.com
-Amauta - Tecnologías del conocimiento
 -----------------------------------------------------
 
-Congratulations!  You just got ahold of one of our
-open source products.  UPS monitor is a graphical
-monitor application that lets you keep tabs on your
-UPSs visually.
+Congratulations!  You just got ahold of one of my open source products.
+UPS monitor is a simple tool that displays UPS information in real time.
+It can monitor a UPS attached to your computer, or a a network server
+plugged into an UPS.
+
+
+Features:
+- Saves your session if UPS switches to battery power
+- Warns you when power is critically low
+- Lets you monitor networked UPSes
+- Remembers configuration and restarts when you log on
+- Extremely easy to use
+
 
 This software requires:
 - an UPS
@@ -15,19 +23,28 @@ This software requires:
 - Python
 - the Python GTK+ 2 bindings, and Glade bindings
 
-To install this software, type �make install' while
-on the command line.  You will probably need
-administrative privileges to perform a system-wide
-installation.  Check the Makefile for variables you can
-control to modify installation directories.
+
+To install this software:
+
+Type 'make install' while on the command line.  You will probably need
+administrative privileges to perform a system-wide installation.  Check
+the Makefile for variables you can control to modify installation directories.
+
+(using the provided RPM packages is much easier)
+
+
+Feedback:
 
 Direct any questions to Manuel Amador (Rudd-O).  Don't
 forget to visit this project's Web site first:
 
-http://www.amautacorp.com/staff/Rudd-O/ups-monitor/
+   http://www.amautacorp.com/staff/Rudd-O/ups-monitor/
 
 to solve any doubts or questions you might have.
 
-This software is under the GPL.  See the file COPYING
-for license details.  Contact us if you need us to
-license this software under a different license.
+
+License and legal notice:
+
+This software is under the GPL.  See the file COPYING for licensing
+information.  Contact us if you need us to license this software under
+a different license.
