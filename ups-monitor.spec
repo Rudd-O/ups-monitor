@@ -1,6 +1,6 @@
 # $Id: mydms.spec 57 2004-06-29 00:14:59Z rudd-o $
 
-%define ver 0.1
+%define ver 0.2
 %define rel 1
 %define prefix /usr
 
