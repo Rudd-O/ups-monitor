@@ -4,8 +4,7 @@
 
 * find out whether the UPS is a master for the current machine, so as to avoid unnecessary session saves
 
-* session management support
-- remember last UPSes monitored, with credential information
+* full session management support
 - if multiple apps are running, save their UPS address/username/password and reload upon restart, instead of blindly reloading .upsmonitor.conf
 
 * event log window?
@@ -28,3 +27,46 @@
 * make exceptions show in own window instead of standard error
 
 * find a more portable way (ideally, in Python) to do tray icons than eggtrayiconmodule.so
+
+
+
+
+
+
+
+
+
+
+
+
+
+Usability issues:
+
+Double-click or
+Space
+
+key should perform the icon's default action. Normally this should open a window with relevant data, for example: 
+
+
+(make ups monitor icon show icon on space)
+
+
+
+
+Right-click or
+Shift
+
+-
+F10
+
+should present a menu for the icon containing at least the icon's default action.
+
+
+
+Alerts must stay above their parent
+
+Alerts do not appear in the system window list. Consequently, take care to ensure that alerts stay above their parent window. Otherwise, users will be likely to lose the alert and find your application unresponsive for no apparent reason. Modal windows should always stay above the window(s) they block.
+
+
+(con window .present si los dialogs estan visibles?)
+
