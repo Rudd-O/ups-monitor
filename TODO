@@ -1,5 +1,5 @@
-* make save config when connection to X server is lost, so hidden state
-  gets preserved across session restarts
+* Figure out why calling request_save while on a KDE session, all
+  GNOME apps hang.
 
 * make process GNOME cmdline args
 
