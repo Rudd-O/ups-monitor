@@ -1,0 +1,10 @@
+HACER PARA Que autodetecte cuales ups hay en la maquina local y permita leer la informacion del ups de /etc/ups/ups.conf by default, que seleccione con una lista
+
+session management (for multiple ups)
+
+recent ups dropdown (?)
+
+command-line ups specification: DONE
+lacks --help and GTK command line processing
+
+systray icon and cute status notifications "ups is down... bla bla"

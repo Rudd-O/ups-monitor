@@ -1,0 +1,814 @@
+#!/usr/bin/env python
+import sys
+import gobject
+import gtk
+import gtk.glade
+import gnome
+import gnome.ui
+from inspect import *
+import inspect
+from os import path
+from string import *
+from socket import *
+import re
+from threading import Thread
+from time import sleep
+from select import select
+import asynchat
+import asyncore
+
+#for a in getmembers(gnome):
+#       print a
+#help(gtk.glade)
+#print gnome.__doc__
+
+
+def read_ups_config(file):
+	f = open(file)
+	lines = f.readlines()
+	lines2 = []
+	for line in lines:
+		commentpos = find(line,"#")
+		if commentpos != -1:
+			line2 = line[:commentpos]
+		else:
+			line2 = line
+		if line2:
+			lines2 = lines2 + [ strip(line2) ]
+	currentups = None
+	upses = dict()
+	for line2 in lines2:
+		r = re.compile("\[(.*)\]")
+		if r.match(line2):
+			[currentups] = r.findall(line2)
+			upses[currentups] = []
+		elif currentups:
+			key, value = split(line2,"=")
+			strip(key)
+			strip(value)
+			upses[currentups] = upses[currentups] + [ { key : value } ]
+		
+	return upses
+	
+	
+	
+class UPSError(Exception):
+	def __init__(self, value):
+		self.value = value
+	def __str__(self):
+		return repr(self.value)
+
+class InvalidAddressError(UPSError):
+	pass
+
+# class NoUPSCError(UPSError):
+# 	pass
+
+class UPSNotConnectedError(UPSError):
+	pass
+
+class AuthenticationFailedError(UPSError):
+	pass
+	
+class UPSNotFoundError(UPSError):
+	pass
+
+class LostConnection(UPSError):
+	pass
+
+
+# class UPSChat(asynchat.async_chat):
+# 	def __init__(self, addr, sessions, log):
+# 		asynchat.async_chat.__init__(self)
+# 		self.addr = addr
+# 		self.ibuffer = []
+# 		self.obuffer = ""
+# 		self.connect(addr,3493)
+# 	
+# 	def collect_incoming_data(self, data):
+# 		"""Buffer the data"""
+# 		self.ibuffer.append(data)
+# 	
+# 	def send(self,data):
+# 		self.push(data)
+# 	
+# 	def found_terminator(self):
+# 		self.ibuffer = []
+def working(e):
+	try:
+		value, name = e
+	except Exception:
+		print "era error de verdad"
+		return False
+	if value == 115:
+		return True
+	return False
+	
+class UPSSocket(socket):
+	def push(self,data):
+		buf = data
+		while len(buf) > 0:
+			select([],[self],[self])
+# 			print "Ready to send data"
+			try:
+				sent = self.send(data)
+			except Exception:
+				raise LostConnection, "The network connection to the UPS is lost"
+			if sent == 0:
+				raise LostConnection, "The network connection to the UPS is lost"
+# 			print "Sending data: " + buf
+			buf = buf[sent:]
+			
+	def get_data_until(self,terminators):
+		if type(terminators) == type("string"):
+			terminators = [terminators]
+		buf = ""
+		found = False
+		while found == False:
+			select([self],[],[self])
+# 			print "Ready to receive data"
+			rcvd = self.recv(8192)
+			if len(rcvd) < 1:
+				raise LostConnection, "The network connection to the UPS is lost"
+# 			print "Receiving data: " + rcvd
+			buf = buf + rcvd
+			for delimiter in terminators:
+				if find(buf,delimiter)  != -1:
+					found = True
+		return buf
+	
+
+
+class UPS:
+
+	address = None
+	host = None
+	ups_name = None
+	username = None
+	password = None
+	socket = None
+	
+	status = "OK"
+
+	manufacturer = None
+	model = None
+	serial = None
+	
+	power_source = None
+	battery_status  = None
+	ups_status = None
+	battery_voltage = None
+	
+	battery_charge = None
+	ups_load = None
+	remaining_time = None
+	max_remaining_time = None
+	
+	def __init__ (self,address,username,password):
+		if find(address,"@") == -1:
+			address = address + "@localhost"
+		self.address = address
+		self.ups_name , self.host = split(address,"@")
+		self.connect_to_ups_server()
+		self.authenticate(username,password)
+		self.check_ups_exists()
+		#self.poll()
+		
+	def disconnect(self):
+ 		try:
+			self.socket.push("LOGOUT\n")
+ 		except Exception, e:
+ 			pass
+		self.socket.close()
+		self.socket = None
+
+	
+	def check_ups_exists(self):
+		self.poll()
+		
+	def connect_to_ups_server(self):
+		self.socket = UPSSocket(AF_INET,SOCK_STREAM)
+		self.socket.setblocking(0)
+		
+		try:
+			self.socket.connect((self.host,3493))
+		except Exception, e:
+			if not working(e):
+				raise InvalidAddressError, "Could not connect to the specified UPS address"
+
+		a = select([self.socket],[self.socket],[self.socket])
+
+ 		try:
+			self.socket.push(" ")
+ 		except Exception, e:
+ 			print e
+			raise InvalidAddressError, "Could not connect to the specified UPS address"
+
+	
+	def authenticate(self,username,password):
+		if not self.is_connected():
+			raise UPSNotConnectedError, "This UPS object is not connected yet"
+		
+		self.username = username
+		self.password = password
+		
+		if username is None:
+			return
+		
+ 		try:
+			self.socket.push("USERNAME " + self.get_username() + "\n")
+ 		except Exception, e:
+ 			print e
+ 			raise InvalidAddressError, "Could not connect to the specified UPS address"
+		
+		response = self.socket.get_data_until("\n")
+		
+		if response[0:2] != "OK":
+			raise AuthenticationFailedError, "The specified username is invalid"
+		
+		self.socket.push("PASSWORD " + self.get_password() + "\n")
+		response = self.socket.get_data_until("\n")
+		
+		if response[0:2] != "OK":
+			raise AuthenticationFailedError, "The specified password is invalid"
+		
+	def is_connected(self):
+		if self.socket  is None:
+			return False
+		return True
+		
+	def poll(self):
+		self.status = "OK"
+		if not self.is_connected():
+			raise UPSNotConnectedError, "This UPS object is not connected yet"
+		
+		self.socket.push("LIST VAR " + self.get_ups_name() + "\n")
+		response = self.socket.get_data_until(["END LIST VAR","ERR"])
+		
+		if find(response,"ERR UNKNOWN-UPS") != -1:
+			raise UPSNotFoundError, "UPS " + self.get_ups_name() + " is not attached to " + self.get_host()
+		
+		if find(response,"ERR DRIVER-NOT-CONNECTED") != -1:
+			self.status = "DRIVER-NOT-CONNECTED"
+		
+		if find(response,"ERR DATA-STALE") != -1:
+			self.status = "DATA-STALE"
+
+# 		if find(response,"ERR DRIVER-NOT-CONNECTED") == -1 and find(response,"ERR") != -1:
+# 			raise Exception, "Unknown error while polling UPS"
+		
+		lines = split(response,"\n");
+		
+		expression = r'VAR [^ \t\n\r\f\v]+ ([^ \t\n\r\f\v]+) "(.*)"'
+		linelist = []
+		for line in lines:
+			matches = re.findall(expression,line)
+			if len(matches) > 0:
+				linelist = linelist + [matches[0]]
+		
+		self.parse_input(linelist)
+		
+	def parse_input(self,linelist):
+		
+		# clear stuff out first
+# 		self.manufacturer = None
+# 		self.model = None
+# 		self.serial = None
+		
+		self.power_source = None
+		self.ups_status  = None
+		self.battery_voltage = None
+		
+		self.battery_charge = None
+		self.ups_load = None
+		self.remaining_time = None
+		
+		
+		for line in linelist:
+			key, value = line
+# 			value = re.sub(r'(.*): ', r'', line)
+# 			key = re.sub(r': (.*)', r'', line)
+			#key = strip(key)
+			#value = strip(value)
+			if key == "battery.charge":
+				self.battery_charge = float(value) / 100
+			if key == "battery.runtime":
+				self.remaining_time = int(value)
+				if self.max_remaining_time is None:
+					self.max_remaining_time = self.remaining_time
+				if self.remaining_time > self.max_remaining_time:
+					self.max_remaining_time = self.remaining_time
+			if key == "battery.voltage":
+				self.battery_voltage = float(value)
+			if key == "ups.load":
+				self.ups_load = float(value) / 100
+			if key == "ups.mfr":
+				self.manufacturer = value
+			if key == "ups.model":
+				self.model = value
+			if key == "ups.serial":
+				self.serial = value
+			if key == "ups.status":
+# 				print "UPS status line: " + value
+				self.battery_status = "NORMAL"
+				self.ups_status = "NORMAL"
+				if find(value,"OL") != -1:
+					self.power_source = "AC"
+				elif find(value,"OB") != -1:
+					self.power_source = "BAT"
+				elif find(value,"LB") != -1:
+					self.battery_status = "LOW"
+				elif find(value,"RB") != -1:
+					self.battery_status = "REPLACE"
+				elif find(value,"BYPASS") != -1:
+					self.ups_status = "BYPASS"
+				elif find(value,"CAL") != -1:
+					self.ups_status = "CALIBRATING"
+				elif find(value,"OFF") != -1:
+					self.ups_status = "OFFLINE"
+				elif find(value,"OVER") != -1:
+					self.ups_status = "OVERLOADED"
+				elif find(value,"TRIM") != -1:
+					self.ups_status = "TRIMMING"
+				elif find(value,"BOOST") != -1:
+					self.ups_status = "BOOSTING"
+				elif value == "FSD":
+					self.power_source = "BAT"
+					self.battery_status = "LOW"
+				else:
+					print "Unknown status value " + value
+					
+	
+	def get_address(self):
+		return self.address
+	def get_host(self):
+		return self.host
+	def get_ups_name(self):
+		return self.ups_name
+	def get_username(self):
+		return self.username
+	def get_password(self):
+		return self.password
+
+
+# for a in getmembers(gtk.glade.XML):
+#       print a
+#       
+# help(gtk.glade.XML)
+
+class UPSPollerThread(Thread):
+	ups = None
+	poll_callback = None
+	failure_callback = None
+	poll_count = 0
+
+	def __init__(self,ups):
+		Thread.__init__(self)
+		self.ups = ups
+		self.setDaemon(True)
+		
+	def set_poll_callback(self,func):
+		self.poll_callback = func
+	
+	def set_failure_callback(self,func):
+		self.failure_callback = func
+	
+	def run(self):
+		while True:
+			if self.ups is None:
+				return
+			try:
+				self.poll_count = self.poll_count + 1
+# 				print "Polling UPS, iteration " + str(self.poll_count)
+				self.ups.poll()
+			except LostConnection, e:
+				print "Error polling UPS:\n" +str(e)
+				self.ups = None
+			except Exception, e:
+				print "Unknown error while polling UPS"
+			if self.ups is not None:
+				sleep (1)
+		
+	def set_ups(self,u):
+		if self.ups:
+			self.ups.disconnect()
+		self.ups = u
+
+		
+class UPSMonitor (gtk.glade.XML):
+	ups = None
+	window = None
+	timeout_id = None
+	pollerthread = None
+	last_power_source = None
+	little_time_left_warning = None
+	
+	def __init__ (self,sharepath):
+		print sharepath
+		self.sharepath = sharepath
+		gtk.glade.XML.__init__(self,path.join(self.sharepath,'ups-monitor.glade'))
+		self.window = self.get_widget("window")
+		self.connect_signals()
+		self.load_config()
+	
+	def save_session(self):
+		os.system("dcop ksmserver ksmserver saveCurrentSession")
+		os.system("gnome-session-save")
+	
+	def connect_signals(self):
+		self.get_widget("tool_exit").connect("clicked",self.quit)
+		self.get_widget("menu_exit").connect("activate",self.quit)
+		self.get_widget("tool_prefs").connect("clicked",self.open_preferences)
+		self.get_widget("menu_prefs").connect("activate",self.open_preferences)
+		self.get_widget("menu_about").connect("activate",self.show_about_dialog)
+		self.get_widget("window").connect("destroy",self.quit)
+		self.get_widget("prefs_ok").connect("clicked",self.process_prefs_ok)
+		self.get_widget("prefs_cancel").connect("clicked",self.process_prefs_cancel)
+		self.get_widget("info_dismiss").connect("clicked",self.dismiss_info_dialog)
+		self.get_widget("error_dismiss").connect("clicked",self.dismiss_error_dialog)
+		self.get_widget("about_dismiss").connect("clicked",self.dismiss_about_dialog)
+		self.get_widget("prefs_window").connect("show",self.prepare_prefs_window)
+		self.get_widget("authenticate").connect("toggled",self.update_auth_container_status)
+		self.get_widget("prefs_window").connect("delete_event",self.hide_prefs_window)
+		self.get_widget("info_dialog").connect("delete_event",self.dismiss_info_dialog)
+		self.get_widget("error_dialog").connect("delete_event",self.dismiss_error_dialog)
+		self.get_widget("about_dialog").connect("delete_event",self.dismiss_about_dialog)
+		self.get_widget("radio_local_upses").connect("toggled",self.process_radio_local_upses)
+		self.get_widget("radio_network_upses").connect("toggled",self.process_radio_network_upses)
+				
+		self.get_widget("about_image").set_from_file(path.join(self.sharepath,"ups-monitor.png"))
+		self.get_widget("battery_image").set_from_file(path.join(self.sharepath,"battery-level.png"))
+		self.get_widget("load_image").set_from_file(path.join(self.sharepath,"load.png"))
+		self.get_widget("remaining_time_image").set_from_file(path.join(self.sharepath,"remaining-time.png"))
+
+		
+		# make the combo useful
+		localupses = None
+		
+		combobox = self.get_widget("hbox_local_upses").get_data("combo")
+		if not combobox:
+			combobox = gtk.Combo()
+			self.get_widget("hbox_local_upses").pack_end(combobox)
+			self.get_widget("hbox_local_upses").set_data("combo",combobox)
+			combobox.show()
+		
+		try:
+			localupses = read_ups_config("/etc/ups/ups.conf").keys()
+		except Exception:
+			print "No UPS config file /etc/ups/ups.conf found"
+		
+		if not localupses:
+			self.get_widget("radio_network_upses").set_active(True)
+			self.get_widget("radio_local_upses").set_sensitive(False)
+		else:
+# 			pass
+ 			combobox.set_popdown_strings(localupses)
+		
+				
+	def disable_display(self):
+		self.get_widget("display").set_sensitive(False)
+	
+	def enable_display(self):
+		self.get_widget("display").set_sensitive(True)
+	
+	def quit(self,caller):
+		self.save_config()
+		gtk.main_quit()
+
+	def open_preferences(self,caller):
+		self.show_prefs_window()
+	
+	def update_statusbar(self,message,ok=True):
+		self.get_widget("statusbar").push(0,message)
+		if ok:
+			self.get_widget("status_icon_ok").show()
+			self.get_widget("status_icon_error").hide()
+		else:
+			self.get_widget("status_icon_ok").hide()
+			self.get_widget("status_icon_error").show()
+	
+	def show_error_dialog(self,message,title=None):
+		# this has only been prototyped needs UI
+		if title:
+			title = "<span weight='bold'><big>" + title + "</big></span>\n\n"
+		else:
+			title = ""
+		self.get_widget("error_message").set_markup(title+message)
+		self.get_widget("error_dialog").show()
+		self.update_statusbar(message,False)
+	
+	def show_info_dialog(self,message,title=None):
+		# this has only been prototyped needs UI
+		if title:
+			title = "<span weight='bold'><big>" + title + "</big></span>\n\n"
+		else:
+			title = ""
+		self.get_widget("info_message").set_markup(title + message)
+		self.get_widget("info_dialog").show()
+	
+	def show_about_dialog(self,caller=None):
+		# this has only been prototyped needs UI
+		self.get_widget("about_dialog").show()
+		
+	def dismiss_error_dialog(self,caller=None,e=None):
+		self.get_widget("error_dialog").hide()
+		return True
+		
+	def dismiss_about_dialog(self,caller=None,e=None):
+		self.get_widget("about_dialog").hide()
+		return True
+		
+	def dismiss_info_dialog(self,caller=None,e=None):
+		self.get_widget("info_dialog").hide()
+		return True
+		
+	def hide_prefs_window(self,caller=None,e=None):
+		self.get_widget("prefs_window").hide()
+		return True
+		
+	def show_prefs_window(self,caller=None,e=None):
+
+		
+		self.get_widget("prefs_window").show()
+		return True
+		
+		
+		
+	def load_config(self):
+		pass
+	
+	def monitor_last_ups(self):
+		upsaddress = None
+		username = None
+		password = None
+		try:
+			fn = path.expanduser("~") + "/.ups-monitor.conf"
+			f = open(fn,"r")
+		except IOError, e:
+			return
+		lines = f.readlines()
+		for line in lines:
+			key, value = split(line,"=")
+			key = strip(key)
+			value = strip(value)
+			if key == "address":
+				upsaddress = value
+			if key == "username":
+				username = value
+			if key == "password":
+				password = value
+		if upsaddress is not None:
+			if find(upsaddress,"@localhost") == -1:
+				self.get_widget("ups_address").set_text(upsaddress)
+				self.get_widget("radio_network_upses").set_active(True)
+			else:
+				addr = upsaddress[:find(upsaddress,"@localhost")]
+				self.get_widget("hbox_local_upses").get_data("combo").get_children()[0].set_text(addr)
+				self.get_widget("radio_local_upses").set_active(True)
+			if username is not None:
+				self.get_widget("authenticate").set_active(True)
+				self.get_widget("username").set_text(username)
+			if password is not None:
+				self.get_widget("authenticate").set_active(True)
+				self.get_widget("password").set_text(password)
+			self.monitor(upsaddress,username,password)
+			
+			
+	
+	def save_config(self):
+		if self.ups is not None:
+			fn = path.expanduser("~") + "/.ups-monitor.conf"
+			os.umask(077)
+			f = open(fn,"w")
+			string = "address = " + self.ups.get_address() + "\n"
+			f.write(string)
+			if  self.ups.get_username()  is not None:
+				string = "username = " + self.ups.get_username() + "\n"
+				f.write(string)
+			if  self.ups.get_password()  is not None:
+				string = "password = " + self.ups.get_password() + "\n"
+				f.write(string)
+			f.close()
+	
+	def monitor(self,ups_address,username,password):
+		
+		try:
+			self.update_statusbar("Connecting to  " + ups_address + "...")
+			u = UPS(ups_address,username,password)
+		except InvalidAddressError, e:
+# 			self.show_prefs_window()
+			self.show_error_dialog("The UPS address " + ups_address + " cannot be contacted or is incorrect.  Please make sure that the server address is correct, the UPS server is working and it has an active network connection.","Cannot monitor " + ups_address)
+			return False
+		except AuthenticationFailedError, e:
+# 			self.show_prefs_window()
+			self.show_error_dialog("The supplied user name or password for " + ups_address + " is incorrect.  Please make sure you typed the password correctly.  If all else fails, contact your network UPS administrator.", "Cannot monitor " + ups_address)
+			return False
+		except UPSNotFoundError, e:
+# 			self.show_prefs_window()
+			self.show_error_dialog("UPS " + ups_address + " is not attached to the server.  Please confirm that you entered the correct UPS name." , "Cannot monitor " + ups_address)
+			return False
+		
+ 		if self.pollerthread:
+ 			self.pollerthread.set_ups(None)
+		
+		self.ups = u
+ 		self.update_statusbar("Connected to "  + u.get_address())
+		
+ 		self.pollerthread= UPSPollerThread(u)
+ 		self.pollerthread.start()
+		
+ 		if self.timeout_id is None:
+			self.refresh_display()
+			self.timeout_id = gobject.timeout_add(500,self.refresh_display)
+			
+		return True
+
+
+	def refresh_display(self):
+		if self.pollerthread is None or not self.pollerthread.isAlive():
+			self.show_error_dialog("The network connection to UPS " + self.ups.get_address() +" is lost.  Check for network availability and ensure the UPS server is still online and running.","UPS " + self.ups.get_address() + " is no longer being monitored")
+			self.disable_display()
+			self.ups = None
+			self.timeout_id = None
+			return False
+			
+		u = self.ups
+		
+		if u.status == "OK":
+	 		self.update_statusbar("Connected to "  + u.get_host() + ": UPS " + u.get_ups_name() + " is being monitored")
+			self.enable_display()
+		if u.status == "DRIVER-NOT-CONNECTED":
+	 		self.update_statusbar("Connected to "  + u.get_host() + ": communications with UPS " + u.get_ups_name() + " lost",False)
+			self.disable_display()
+		if u.status == "DATA-STALE":
+	 		self.update_statusbar("Connected to "  + u.get_host() + ": information for UPS " + u.get_ups_name() + " is stale",False)
+			self.disable_display()
+					
+		if u.manufacturer:
+			self.get_widget("label_manufacturer").set_text(u.manufacturer)
+		else:
+			self.get_widget("label_manufacturer").set_text("(unknown)")
+		
+		if u.model:
+			self.get_widget("label_model").set_text(u.model)
+		else:
+			self.get_widget("label_model").set_text("(unknown)")
+		
+		if u.serial:
+			self.get_widget("label_serial").set_text(u.serial)
+		else:
+			self.get_widget("label_serial").set_text("(unknown)")
+		
+		if u.power_source == "AC":
+ 			self.little_time_left_warning = None
+			self.get_widget("label_power_source").set_text("Wall socket")
+		elif u.power_source == "BAT":
+			self.get_widget("label_power_source").set_text("Battery backup")
+			if self.last_power_source == "AC":
+				self.update_statusbar("UPS is now on battery backup: saving your current session as a precaution...")
+				self.save_session()
+		else:
+			self.get_widget("label_power_source").set_text("(unknown)")
+			
+		self.last_power_source = u.power_source
+		
+		if u.battery_status == "NORMAL":
+			self.get_widget("label_battery_status").set_text("OK")
+		elif u.battery_status == "LOW":
+			self.get_widget("label_battery_status").set_text("Low")
+		elif u.battery_status == "REPLACE":
+			self.get_widget("label_battery_status").set_text("Needs replacement")
+		else:
+			self.get_widget("label_battery_status").set_text("(unknown)")
+
+		if u.ups_status == "NORMAL":
+			self.get_widget("label_ups_status").set_text("Normal")
+		elif u.ups_status == "BYPASS":
+			self.get_widget("label_ups_status").set_text("Backup unavailable")
+		elif u.ups_status == "CALIBRATING":
+			self.get_widget("label_ups_status").set_text("Calibrating")
+		elif u.ups_status == "OFFLINE":
+			self.get_widget("label_ups_status").set_text("Offline")
+		elif u.ups_status == "OVERLOADED":
+			self.get_widget("label_ups_status").set_text("Overloaded")
+		elif u.ups_status == "TRIMMING":
+			self.get_widget("label_ups_status").set_text("Limiting high voltage")
+		elif u.ups_status == "BOOSTING":
+			self.get_widget("label_ups_status").set_text("Boosting low voltage")
+		else:
+			self.get_widget("label_ups_status").set_text("(unknown)")
+		
+		if u.battery_voltage:
+			self.get_widget("label_battery_voltage").set_text(str(u.battery_voltage) + " V")
+		else:
+			self.get_widget("label_battery_voltage").set_text("(unknown)")
+
+		if u.battery_charge:
+			self.get_widget("meter_battery_charge").set_text(str(int(u.battery_charge*100)) + "%")
+			self.get_widget("meter_battery_charge").set_fraction(u.battery_charge)
+		else:
+			self.get_widget("meter_battery_charge").set_text("(unknown)")
+			self.get_widget("meter_battery_charge").set_fraction(0.0)
+		
+		if u.ups_load:
+			self.get_widget("meter_ups_load").set_text(str(int(u.ups_load*100)) + "%")
+			if u.ups_load <= 1:
+				self.get_widget("meter_ups_load").set_fraction(u.ups_load)
+			else:
+				self.get_widget("meter_ups_load").set_fraction(1.0)
+				
+		else:
+			self.get_widget("meter_ups_load").set_text("(unknown)")
+			self.get_widget("meter_ups_load").set_fraction(0.0)
+		
+		if u.remaining_time:
+			self.get_widget("meter_remaining_time").set_text(str(u.remaining_time) + " seconds")
+			self.get_widget("meter_remaining_time").set_fraction(float(u.remaining_time)/u.max_remaining_time)
+			if u.power_source == "BAT" and u.remaining_time < 60 and self.little_time_left_warning is None:
+				self.show_info_dialog(u.get_host().capitalize() + " will power off soon to prevent long-term UPS battery damage, unless utility power returns. Save any open documents and close your session.","Less than a minute of battery power remaining")
+				self.little_time_left_warning = True
+				
+		else:
+			self.get_widget("meter_remaining_time").set_text("(unknown)")
+			self.get_widget("meter_remaining_time").set_fraction(0.0)
+		
+		return True
+			
+						
+	def prepare_prefs_window(self,caller):
+		self.get_widget("ups_address").grab_focus()
+								
+	def update_auth_container_status(self,caller):
+		if self.get_widget("authenticate").get_active():
+			self.get_widget("auth_container").set_sensitive(True)
+		else:
+			self.get_widget("auth_container").set_sensitive(False)
+
+	def process_radio_local_upses(self,caller):
+		self.get_widget("hbox_local_upses").get_data("combo").set_sensitive(caller.get_active())
+			
+	def process_radio_network_upses(self,caller):
+		self.get_widget("ups_address").set_sensitive(caller.get_active())
+			
+	
+	def process_prefs_ok(self,caller):
+		cont = True
+		if self.get_widget("radio_local_upses").get_active():
+			combobox = self.get_widget("hbox_local_upses").get_data("combo")
+			addr = combobox.get_children()[0].get_text()
+		else:
+			addr = self.get_widget("ups_address").get_text()
+		if len(addr) < 1 :
+			cont = False
+			self.show_info_dialog("Please choose an UPS or enter the full UPS address (ups@server) before continuing")
+		if self.get_widget("authenticate").get_active():
+			user = self.get_widget("username").get_text()
+			password = self.get_widget("password").get_text()
+			if len(user) < 1 or len(password) < 1:
+				cont = False
+				self.show_info_dialog("Please type in a user name and a password before continuing")
+		else:
+			user = None
+			password = None
+		
+		if cont:
+			
+			if self.monitor(addr,user,password) is True:
+				self.hide_prefs_window()
+
+	def process_prefs_cancel(self,caller):
+		self.hide_prefs_window()
+		
+# print locals()
+		
+
+
+
+upsaddress =None
+if len(sys.argv) > 1:
+	upsaddress = sys.argv[1]
+
+
+testfile = 'ups-monitor.glade'
+sharedirs = [".",os.path.join(os.path.dirname(sys.argv[0]),"../share/ups-monitor")]
+sharepath = None
+for sharedir in sharedirs:
+	fname = path.join(path.abspath(sharedir),testfile)
+  	if path.exists(fname):
+		sharepath = path.abspath(sharedir)
+		break
+
+if sharepath is None:
+	raise Exception, "Glade file " + testfile + " cannot be found in any of " + str(sharedirs) + " default paths"
+
+
+app = UPSMonitor(sharepath)
+if upsaddress:
+	app.monitor(upsaddress,None,None)
+else:
+	app.monitor_last_ups()
+
+
+gtk.threads_init()
+ 
+gtk.main()
