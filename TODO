@@ -29,3 +29,5 @@
 * make exceptions show in own window instead of standard error
 
 * find a more portable way (ideally, in Python) to do tray icons than eggtrayiconmodule.so
+
+* solve the defunct processes problem when lights go out and dcop and gnome-save-session stay defunct

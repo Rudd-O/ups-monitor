@@ -10,15 +10,19 @@ import gtk.glade
 from inspect import *
 import inspect
 from os import path
+import errno
 from string import *
 from socket import *
 import re
 from threading import Thread
 from time import sleep
 from select import select
-import asynchat
-import asyncore
 
+debug = True
+
+def debug_print(something):
+	if debug:
+		print something
 
 def get_shared_path():
 	testfile = 'version'
@@ -174,14 +178,25 @@ def working(e):
 	try:
 		value, name = e
 	except Exception:
-		print "era error de verdad"
+		debug_print( "era error de verdad")
 		return False
 	if value == 115:
 		return True
 	return False
 	
+def timeout(e):
+	try:
+		value, name = e
+	except Exception:
+		debug_print( "era error de verdad")
+		return False
+	if value == errno.ETIME or value == errno.ETIMEDOUT:
+		return True
+	return False
+	
 class UPSSocket(socket):
 	def push(self,data):
+		debug_print( "Sending data: " + str(data))
 		buf = data
 		while len(buf) > 0:
 			select([],[self],[self])
@@ -194,12 +209,15 @@ class UPSSocket(socket):
 			buf = buf[sent:]
 			
 	def get_data_until(self,terminators):
+		debug_print( "Waiting for data until: " + str(terminators))
 		if type(terminators) == type("string"):
 			terminators = [terminators]
 		buf = ""
 		found = False
 		while found == False:
-			select([self],[],[self])
+			debug_print( "Waiting...")
+#			select([self],[],[self])
+			debug_print( "Receiving something")
 			rcvd = self.recv(8192)
 			if len(rcvd) < 1:
 				raise LostConnection, "The network connection to the UPS is lost"
@@ -219,6 +237,9 @@ class UPS:
 	username = None
 	password = None
 	socket = None
+	poller_thread = None
+	poll_callback = None
+	failure_callback = None
 	
 	status = "OK"
 
@@ -241,26 +262,18 @@ class UPS:
 			address = address + "@localhost"
 		self.address = address
 		self.ups_name , self.host = split(address,"@")
-		self.connect_to_ups_server()
-		self.authenticate(username,password)
-		self.check_ups_exists()
-		#self.poll()
 		
-	def disconnect(self):
- 		try:
-			self.socket.push("LOGOUT\n")
- 		except Exception, e:
- 			pass
-		self.socket.close()
-		self.socket = None
-
-	
 	def check_ups_exists(self):
 		self.poll()
 		
-	def connect_to_ups_server(self):
+	def connect(self):
+#		self.set_poll_callback(poll_callback)
+#		self.set_failure_callback(failure_callback)
+
+
 		self.socket = UPSSocket(AF_INET,SOCK_STREAM)
-		self.socket.setblocking(0)
+		self.socket.setblocking(1)
+		self.socket.settimeout(15)
 		
 		try:
 			self.socket.connect((self.host,3493))
@@ -273,10 +286,24 @@ class UPS:
  		try:
 			self.socket.push(" ")
  		except Exception, e:
- 			print e
+ 			debug_print( e)
 			raise InvalidAddressError, "Could not connect to the specified UPS address"
 
-	
+		if username is not None:
+			self.authenticate(username,password)
+
+		self.check_ups_exists()
+
+	def disconnect(self):
+ 		try:
+			self.socket.push("LOGOUT\n")
+ 		except Exception, e:
+ 			pass
+		self.stop_monitoring()
+
+		self.socket.close()
+		self.socket = None
+
 	def authenticate(self,username,password):
 		if not self.is_connected():
 			raise UPSNotConnectedError, "This UPS object is not connected yet"
@@ -284,13 +311,10 @@ class UPS:
 		self.username = username
 		self.password = password
 		
-		if username is None:
-			return
-		
- 		try:
+		try:
 			self.socket.push("USERNAME " + self.get_username() + "\n")
  		except Exception, e:
- 			print e
+ 			debug_print( e)
  			raise InvalidAddressError, "Could not connect to the specified UPS address"
 		
 		response = self.socket.get_data_until("\n")
@@ -305,17 +329,45 @@ class UPS:
 			raise AuthenticationFailedError, "The specified password is invalid"
 		
 	def is_connected(self):
-		if self.socket  is None:
+		if self.socket is None:
+			return False
+		return True
+
+	def is_monitoring(self):
+		if self.poller_thread is None:
+			return False
+		if self.poller_thread.isAlive() is not True:
 			return False
 		return True
 		
 	def poll(self):
+		debug_print( "polling UPS")
 		self.status = "OK"
 		if not self.is_connected():
 			raise UPSNotConnectedError, "This UPS object is not connected yet"
 		
-		self.socket.push("LIST VAR " + self.get_ups_name() + "\n")
-		response = self.socket.get_data_until(["END LIST VAR","ERR"])
+		try:
+			self.socket.push("LIST VAR " + self.get_ups_name() + "\n")
+			response = self.socket.get_data_until(["END LIST VAR","ERR"])
+
+		except LostConnection, e:
+			debug_print( "Disconnected")
+			self.disconnect()
+			if self.failure_callback:
+				gtk.threads_enter()
+				self.failure_callback()
+				gtk.threads_leave()
+			return
+			
+		except Exception, e:
+			debug_print( dir(e))
+			debug_print( "Timed out while sending or receiving data")
+			self.disconnect()
+			if self.failure_callback:
+				gtk.threads_enter()
+				self.failure_callback()
+				gtk.threads_leave()
+			return
 		
 		if find(response,"ERR UNKNOWN-UPS") != -1:
 			raise UPSNotFoundError, "UPS " + self.get_ups_name() + " is not attached to " + self.get_host()
@@ -339,6 +391,12 @@ class UPS:
 				linelist = linelist + [matches[0]]
 		
 		self.parse_input(linelist)
+
+		if self.poll_callback:
+			debug_print( "Calling callback thread")
+			gtk.threads_enter()
+			self.poll_callback()
+			gtk.threads_leave()
 		
 	def parse_input(self,linelist):
 		
@@ -404,7 +462,7 @@ class UPS:
 					self.power_source = "BAT"
 					self.battery_status = "LOW"
 				else:
-					print "Unknown status value " + value
+					debug_print( "Unknown status value " + value)
 					
 	
 	def get_address(self):
@@ -418,7 +476,23 @@ class UPS:
 	def get_password(self):
 		return self.password
 
+	def set_poll_callback(self,func):
+		self.poll_callback = func
+	
+	def set_failure_callback(self,func):
+		self.failure_callback = func
+	
+	def start_monitoring(self,poll_callback,failure_callback):
+		self.set_poll_callback(poll_callback)
+		self.set_failure_callback(failure_callback)
 
+		self.poller_thread= UPSPollerThread(self)
+		self.poller_thread.start()
+
+	def stop_monitoring(self):
+		if self.poller_thread:
+			self.poller_thread.stop()
+			self.poller_thread = None
 
 class UPSPollerThread(Thread):
 	ups = None
@@ -431,31 +505,17 @@ class UPSPollerThread(Thread):
 		self.ups = ups
 		self.setDaemon(True)
 		
-	def set_poll_callback(self,func):
-		self.poll_callback = func
-	
-	def set_failure_callback(self,func):
-		self.failure_callback = func
-	
 	def run(self):
 		while True:
 			if self.ups is None:
 				return
-			try:
-				self.poll_count = self.poll_count + 1
-				self.ups.poll()
-			except LostConnection, e:
-				print "Error polling UPS:\n" +str(e)
-				self.ups = None
-			except Exception, e:
-				print "Unknown error while polling UPS"
+			self.poll_count = self.poll_count + 1
+			self.ups.poll()
 			if self.ups is not None:
 				sleep (1)
-		
-	def set_ups(self,u):
-		if self.ups:
-			self.ups.disconnect()
-		self.ups = u
+
+	def stop(self):
+		self.ups = None
 
 class UPSTrayMonitor:
 
@@ -595,7 +655,6 @@ class UPSMonitor (gtk.glade.XML):
 	ups = None
 	window = None
 	timeout_id = None
-	pollerthread = None
 	last_power_source = None
 	little_time_left_warning = None
 	session_saved = None
@@ -805,10 +864,12 @@ class UPSMonitor (gtk.glade.XML):
 			raise NoLastUPSError, "No last UPS to monitor"
 			
 	def save_config(self):
+		debug_print( "Saving config")
 		fn = path.expanduser("~") + "/.ups-monitor.conf"
 		os.umask(077)
 		f = open(fn,"w")
 		if self.ups is not None:
+			debug_print("Saving UPS configuration")
 			string = "address = " + self.ups.get_address() + "\n"
 			f.write(string)
 			if  self.ups.get_username()  is not None:
@@ -821,6 +882,7 @@ class UPSMonitor (gtk.glade.XML):
 			string = "app_visible = true" + "\n"
 		else:
 			string = "app_visible = false" + "\n"
+		f.write(string)
 		if self.config["background_monitoring_shown"]:
 			string = "background_monitoring_shown = true" + "\n"
 		else:
@@ -833,6 +895,7 @@ class UPSMonitor (gtk.glade.XML):
 		try:
 			self.update_statusbar("Connecting to  <b>" + ups_address + "</b>...")
 			u = UPS(ups_address,username,password)
+			u.connect()
 		except InvalidAddressError, e:
 			self.show_error_dialog("The UPS address <b>" + ups_address + "</b> cannot be contacted or is incorrect.  Please make sure that the server address is correct, the UPS server is working and it has an active network connection.","Cannot monitor " + ups_address)
 			self.update_statusbar("Cannot monitor <b>" + ups_address + "</b>",False)
@@ -846,25 +909,18 @@ class UPSMonitor (gtk.glade.XML):
 			self.update_statusbar("Cannot monitor <b>" + ups_address + "</b>",False)
 			return False
 		
- 		if self.pollerthread:
- 			self.pollerthread.set_ups(None)
+ 		if self.ups:
+ 			self.ups.stop_monitoring()
 		
 		self.ups = u
  		self.update_statusbar("Connected to <b>"  + get_friendly_computer_name(u.get_address()) + "</b>")
-		
- 		self.pollerthread= UPSPollerThread(u)
- 		self.pollerthread.start()
-		
- 		if self.timeout_id is None:
-			self.refresh_display()
-			self.timeout_id = gobject.timeout_add(500,self.refresh_display)
+		self.ups.start_monitoring(self.refresh_display,self.refresh_display)
 			
 		return True
 
 
 	def refresh_display(self):
-
-		if self.pollerthread is None or not self.pollerthread.isAlive():
+		if not self.ups.is_connected() or not self.ups.is_monitoring():
 			self.show_error_dialog("The network connection to <b>" + get_friendly_computer_name(self.ups.get_host()) +"</b> is lost.  Check for network availability and ensure the UPS server is still online and running.","UPS " + self.ups.get_address() + " is no longer being monitored")
 			self.update_statusbar("Cannot continue monitoring <b>" + self.ups.get_address() + "</b>",False)
 			self.disable_display()
@@ -1117,12 +1173,14 @@ class UPSMonitor (gtk.glade.XML):
 
 
 
-upsaddress =None
+upsaddress = None
 if len(sys.argv) > 1:
 	upsaddress = sys.argv[1]
 
 
 app = UPSMonitor(get_shared_path())
+
+
 if upsaddress:
 	app.monitor(upsaddress,None,None)
 else:
@@ -1143,6 +1201,4 @@ else:
 
 gtk.threads_init()
 
-gtk.threads_enter()
 gtk.mainloop()
-gtk.threads_leave()
