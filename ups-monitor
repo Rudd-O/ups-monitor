@@ -1184,6 +1184,11 @@ def main():
 		if sys.argv[counter][0:1] != "-":
 			upsaddress = sys.argv[counter]
 			break;
+		if sys.argv[counter] == "--sm-client-id":
+			counter += 1
+		if sys.argv[counter] == "--screen":
+			counter += 1
+		
 		counter += 1
 
 	app = UPSMonitor(get_shared_path())
