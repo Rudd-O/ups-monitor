@@ -1,4 +1,8 @@
 #!/usr/bin/env python
+
+# ups-monitor code file
+# $Id$
+
 import sys
 import locale
 import gobject
