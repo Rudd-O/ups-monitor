@@ -26,7 +26,6 @@
 
 * make exceptions show in own window instead of standard error
 
-* find a more portable way (ideally, in Python) to do tray icons than eggtrayiconmodule.so
 
 
 

@@ -47,7 +47,7 @@ export PREFIX
 export MANPATH
 
 all:: $(OBJECTS)
-	cp $(OBJECTS) ..
+#	cp $(OBJECTS) ..
 
 # default compile rule:
 %.pyc: %.py
