@@ -1,19 +1,25 @@
-HACER PARA Que autodetecte cuales ups hay en la maquina local y permita leer la informacion del ups de /etc/ups/ups.conf by default, que seleccione con una lista DONE
-ver si vale la pena migrar a LIST UPS en lugar de leer el archivo conf
+* rewrite autodetection code to connect to local host instead of reading
+/etc/ups/ups.conf
 
-session management support (for multiple windows), open in new window option (como le paso el pw al nuevo app?)
+* find out whether the UPS is a master for the current machine, so as to avoid unnecessary session saves
 
-remember recently successfully monitored upses show them in a list box
+* session management support
+- remember last UPSes monitored, with credential information
+- if multiple apps are running, save their UPS address/username/password and reload upon restart, instead of blindly reloading .upsmonitor.conf
 
-command-line ups specification: DONE
-lacks --help and GTK command line processing
+* event log window?
 
-event log window?
+* move to GtkHeaders instead of GtkLabels?  How, with Glade?
 
-mover headers a GtkHeaders instead of GtkLabels?
+* gnome support?  #ifdef'd ?
 
-gnome support?  #ifdef'd ?
+* i18n/l10n
 
-show the true Description field (ACP BLABLA) instead of the ups name (apc) if available
+* use the true Description field (if available) everywhere the ups name is being used in the UI
 
+* untangle the mess and refactor code
+- put classes in unique files
 
+* use sys.path construct (augmenting it at runtime to find the UPS monitor share directory), to load images and all shared information
+
+* make main window titlebar more descriptive

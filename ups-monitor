@@ -702,9 +702,8 @@ class UPSMonitor (gtk.glade.XML):
 			self.get_widget("status_icon_error").show()
 	
 	def show_error_dialog(self,message,title=None):
-		# this has only been prototyped needs UI
 		if title:
-			title = "<span weight='bold'><big>" + title + "</big></span>\n\n"
+			title = "<span weight='bold' size='larger'>" + title + "</span>\n\n"
 		else:
 			title = ""
 		self.get_widget("error_message").set_markup(title+message)
@@ -712,9 +711,8 @@ class UPSMonitor (gtk.glade.XML):
 		#self.update_statusbar(message,False)
 	
 	def show_info_dialog(self,message,title=None):
-		# this has only been prototyped needs UI
 		if title:
-			title = "<span weight='bold'><big>" + title + "</big></span>\n\n"
+			title = "<span weight='bold' size='larger'>" + title + "</span>\n\n"
 		else:
 			title = ""
 		self.get_widget("info_message").set_markup(title + message)
@@ -722,14 +720,13 @@ class UPSMonitor (gtk.glade.XML):
 	
 	def show_warning_dialog(self,message,title=None):
 		if title:
-			title = "<span weight='bold'><big>" + title + "</big></span>\n\n"
+			title = "<span weight='bold' size='larger'>" + title + "</span>\n\n"
 		else:
 			title = ""
 		self.get_widget("warning_message").set_markup(title + message)
 		self.get_widget("warning_dialog").present()
 	
 	def show_about_dialog(self,caller=None):
-		# this has only been prototyped needs UI
 		self.get_widget("about_dialog").present()
 		
 	def dismiss_error_dialog(self,caller=None,e=None):
