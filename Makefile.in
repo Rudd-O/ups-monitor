@@ -731,11 +731,8 @@ uninstall-man: uninstall-man1
 	uninstall-pixmapsDATA uninstall-pkgdataDATA
 
 
-#eggtrayiconmodule.so:
-#	olddir=`pwd`
-#	cd $(srcdir)/eggtray
-#	make
-#	cd "$olddir"
+eggtrayiconmodule.so:
+	make -C $(srcdir)/eggtray
 
 install-data-hook:
 	$(mkinstalldirs) $(DESTDIR)$(appsdir)
