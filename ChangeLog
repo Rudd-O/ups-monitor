@@ -1,3 +1,7 @@
+2005-12-02  Manuel Amador <dragonfear@gmail.com>
+	* ups-monitor-0.8.3
+	  + Various build fixes and documentation fixes
+
 2005-03-21  Manuel Amador <rudd-o@amautacorp.com>
 	* ups-monitor-0.8.1:
 	  + Use session management to save configuration upon logout.

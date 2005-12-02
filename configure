@@ -2176,7 +2176,7 @@ echo "$as_me: error: Library requirements (gtk+-2.0 >= 2.4.0 libgnomeui-2.0 >=  
 
 
 
-                    ac_config_files="$ac_config_files Makefile eggtray/Makefile"
+                              ac_config_files="$ac_config_files Makefile eggtray/Makefile ups-monitor.spec"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -2738,6 +2738,7 @@ do
   # Handling of arguments.
   "Makefile" ) CONFIG_FILES="$CONFIG_FILES Makefile" ;;
   "eggtray/Makefile" ) CONFIG_FILES="$CONFIG_FILES eggtray/Makefile" ;;
+  "ups-monitor.spec" ) CONFIG_FILES="$CONFIG_FILES ups-monitor.spec" ;;
   *) { { echo "$as_me:$LINENO: error: invalid argument: $ac_config_target" >&5
 echo "$as_me: error: invalid argument: $ac_config_target" >&2;}
    { (exit 1); exit 1; }; };;

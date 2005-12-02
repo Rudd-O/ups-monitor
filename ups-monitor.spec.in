@@ -1,6 +1,6 @@
 # $Id$
 
-%define ver 0.8.2
+%define ver @VERSION@
 %define rel 1
 %define prefix /usr
 
@@ -37,6 +37,9 @@ Monitor de SAI necesita el servicio Network UPS Tools (nut).
 
 
 %changelog
+* Fri Dec 12 2005 Manuel Amador <dragonfear@gmail.com> 0.8.3-1
+- Various build fixes and documentation fixes
+
 * Fri Mar 21 2005 Manuel Amador <rudd-o@amautacorp.com> 0.8.2-1
 - Session management support
 - SM support for saving sessions

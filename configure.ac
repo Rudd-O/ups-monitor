@@ -37,5 +37,5 @@ PKG_CHECK_MODULES(EGG, gtk+-2.0 >= 2.4.0 libgnomeui-2.0 >=  2.2.0 pygtk-2.0 >= 2
 AC_SUBST(EGG_LIBS)
 AC_SUBST(EGG_CFLAGS)
 
-AC_CONFIG_FILES([Makefile eggtray/Makefile])
+AC_CONFIG_FILES([Makefile eggtray/Makefile ups-monitor.spec])
 AC_OUTPUT

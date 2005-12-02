@@ -1086,13 +1086,13 @@ class UPSMonitor (gtk.glade.XML):
 
 	
 	def open_website(self,caller = None):
-		self.run_uri("http://www.amautacorp.com/staff/Rudd-O/projects/ups-front/")
+		self.run_uri("http://www.usm.edu.ec/~amadorm/software/")
 		
 	def open_author_website(self,caller = None):
-		self.run_uri("http://www.amautacorp.com/staff/Rudd-O/")
+		self.run_uri("http://www.usm.edu.ec/~amadorm/")
 		
 	def send_mail_to_author(self,caller = None):
-		self.run_uri("mailto:rudd-o@amautacorp.com")
+		self.run_uri("mailto:dragonfear@gmail.com")
 	
 	def open_gpl(self,caller = None):
 		self.run_uri("http://www.fsf.org/copyleft/gpl.txt")

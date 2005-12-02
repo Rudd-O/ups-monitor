@@ -14,4 +14,4 @@ by issuing
   ./configure
   make rpm
 
-That's it!
+then install the RPM.  That's it!
