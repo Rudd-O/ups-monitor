@@ -1,4 +1,4 @@
-# $Id: ups-monitor.spec 60 2005-03-21 16:55:55Z rudd-o $
+# $Id: ups-monitor.spec.in 68 2005-12-02 22:14:33Z rudd-o $
 
 %define ver 0.8.3
 %define rel 1
@@ -10,14 +10,13 @@ Name:           ups-monitor
 Vendor:         Amauta
 Version:        %ver
 Release:        %rel
-Copyright:      Manuel Amador (Rudd-O)
+License:        GPL
 Group:          System/Monitoring
 Source:         %{name}-%ver.tar.gz
 URL:            http://www.amautacorp.com/staff/Rudd-O/projects/ups-front/
 BuildRoot:      %{_tmppath}/build-%{name}-%{ver}
 Requires:       pygtk2 pygtk2-libglade gnome-python2
 BuildArch:      i386
-Packager:       Manuel Amador (Rudd-O) <rudd-o@amautacorp.com>
 
 %description
 UPS monitor is a simple tool that displays UPS information in real time.
@@ -37,6 +36,9 @@ Monitor de SAI necesita el servicio Network UPS Tools (nut).
 
 
 %changelog
+* Fri Dec 12 2005 Manuel Amador <dragonfear@gmail.com> 0.8.3-1
+- Various build fixes and documentation fixes
+
 * Fri Mar 21 2005 Manuel Amador <rudd-o@amautacorp.com> 0.8.2-1
 - Session management support
 - SM support for saving sessions

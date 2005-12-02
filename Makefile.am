@@ -45,7 +45,7 @@ EXTRA_DIST = \
 	$(pixmaps_DATA) \
 	$(man_MANS) \
 	eggtrayiconmodule.so \
-	ups-monitor.desktop ups-monitor.spec autogen.sh
+	ups-monitor.desktop ups-monitor.spec ups-monitor.spec.in autogen.sh
 
 eggtrayiconmodule.so:
 	make -C $(srcdir)/eggtray
