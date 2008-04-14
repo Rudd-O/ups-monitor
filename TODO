@@ -1,3 +1,7 @@
+* icon does not look good in gnome panel
+
+* put hide in panel button on the main interface
+
 * Figure out why calling request_save while on a KDE session, all
   GNOME apps hang.
 
