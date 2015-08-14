@@ -577,6 +577,7 @@ class UPSMonitor (gtk.glade.XML):
 			if not self.config["background_monitoring_shown"] and self.ups:
 				self.show_info_dialog("UPS monitor will continue monitoring your UPS in the background.  You can access the UPS monitor window by clicking the UPS monitor status icon  in the notification area.","UPS monitor keeps monitoring your UPS")
 				self.config["background_monitoring_shown"] = True
+                self.save_config()
 		return True
 
 	def main_window_closed(self,caller=None,data=None):
@@ -788,10 +789,11 @@ class UPSMonitor (gtk.glade.XML):
 		
  		if self.ups:
  			self.ups.stop_monitoring()
-		
+
 		self.ups = u
  		self.update_statusbar("Connected to <b>"  + get_friendly_computer_name(u.get_address()) + "</b>")
 		self.ups.start_monitoring(self.refresh_display,self.refresh_display)
+                self.save_config()
 			
 		return True
 
