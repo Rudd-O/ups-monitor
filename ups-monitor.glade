@@ -2194,7 +2194,6 @@ A graphical application to monitor the status of your UPS</property>
 
 	Eugenia Loli-Queru, for usability and aspect improvements
 	Peter Williams &amp;lt;peter@newton.cx&amp;gt; for autotools integration
-	Arnaud Quette &amp;lt;arnaud.quette@mgeups.com&amp;gt; for eggtrayicon compilation
 </property>
 	  <property name="use_underline">False</property>
 	  <property name="use_markup">True</property>
