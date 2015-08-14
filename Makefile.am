@@ -22,7 +22,7 @@ pkgdata_DATA = \
 	warning-icon.png
 
 doc_DATA = \
-	README \
+	README.md \
 	COPYING \
 	TODO \
 	AUTHORS \
