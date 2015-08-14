@@ -474,20 +474,13 @@ class UPSPollerThread(Thread):
 class UPSTrayMonitor:
 
 	window = None
-	ac_icon = None
-	bat_icon = None
-	warning_icon = None
-	battery_good_icon = None
-	battery_low_icon = None
-	battery_critical_icon = None
-	icon_container = None
 	sharepath = None
 	last_tooltip = None
 	alarm_message = None
 	error_message = None
 	event_box = None
 	app = None
-	logo_icon = None
+	last_power_source = None
 
 	def __init__(self,app):
 		self.app = app
@@ -495,64 +488,39 @@ class UPSTrayMonitor:
 
 		self.window = gtk.StatusIcon()
 		self.window.set_tooltip("UPS monitor")
+                self.window.set_from_file(path.join(self.sharepath,"ups-monitor-small.png"))
 
-		self.logo_icon = gtk.Image()
-		self.logo_icon.set_from_file(path.join(self.sharepath,"ups-monitor-small.png"))
-		self.logo_icon.show()
-
-		self.ac_icon = gtk.Image()
-		self.ac_icon.set_from_file(path.join(self.sharepath,"ac-icon.png"))
-
-		self.bat_icon = gtk.Image()
-		self.bat_icon.set_from_file(path.join(self.sharepath,"bat-icon.png"))
-
-		self.warning_icon = gtk.Image()
-		self.warning_icon.set_from_file(path.join(self.sharepath,"warning-icon.png"))
-
-		self.battery_good_icon = gtk.Image()
-		self.battery_good_icon.set_from_file(path.join(self.sharepath,"battery-good.png"))
-
-		self.battery_low_icon = gtk.Image()
-		self.battery_low_icon.set_from_file(path.join(self.sharepath,"battery-low.png"))
-
-		self.battery_critical_icon = gtk.Image()
-		self.battery_critical_icon.set_from_file(path.join(self.sharepath,"battery-critical.png"))
-
-		self.window.set_from_file(path.join(self.sharepath,"ups-monitor-small.png"))
-
-
-	def set_power_source(self,source):
-		self.logo_icon.hide()
+	def set_power_source(self,source=None):
+                if not source:
+                    source = self.last_power_source
+                    if source is None:
+                        return
+                else:
+                    self.last_power_source = source
 		if source == "AC":
-			self.ac_icon.show()
-			self.bat_icon.hide()
+                        self.window.set_from_file(path.join(self.sharepath,"ac-icon.png"))
 			if not self.alarm_message and not self.error_message:
 				self.set_tooltip("UPS is drawing power from wall socket")
 		else:
-			self.ac_icon.hide()
-			self.bat_icon.show()
+                        self.window.set_from_file(path.join(self.sharepath,"bat-icon.png"))
 			if not self.alarm_message and not self.error_message:
 				self.set_tooltip("UPS is using battery backup power")
 
 	def set_alarm(self,text):
-		self.logo_icon.hide()
 		self.alarm_message = text
 		if text:
 			self.set_tooltip(text)
-			self.warning_icon.show()
+                        self.window.set_from_file(path.join(self.sharepath,"warning-icon.png"))
 		else:
-			self.warning_icon.hide()
+			self.set_power_source()
 
 	def set_error(self,text):
-		self.logo_icon.hide()
 		self.error_message = text
 		if text:
 			self.set_tooltip(text)
-			self.ac_icon.hide()
-			self.bat_icon.hide()
-			self.warning_icon.show()
+                        self.window.set_from_file(path.join(self.sharepath,"warning-icon.png"))
 		else:
-			self.warning_icon.hide()
+                        self.set_power_source()
 
 	def set_tooltip(self,text):
 		if self.error_message:
@@ -563,7 +531,7 @@ class UPSTrayMonitor:
 			tip = text
 
 		if tip != self.last_tooltip:
-			self.window.tooltip.set_tip(self.window,tip)
+			self.window.set_tooltip(tip)
 		self.last_tooltip = tip
 
 	def toggle_main_window (self):
