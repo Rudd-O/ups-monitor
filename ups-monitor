@@ -587,6 +587,7 @@ class UPSMonitor (gtk.glade.XML):
 
 	def connect_signals(self):
 		self.signal_autoconnect(self)
+		self.tray_icon.window.connect("activate", lambda _: self.toggle_main_window())
 
 
 	def prepare_widgets(self):
