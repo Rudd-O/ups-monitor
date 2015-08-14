@@ -24,7 +24,7 @@ debug = False
 
 def debug_print(something):
 	if debug:
-		print something
+		print >> sys.stderr, something
 
 def get_shared_path():
 	testfile = 'version'
