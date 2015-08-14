@@ -1,7 +1,5 @@
 # Process with automake to create Makefile.in
 
-SUBDIRS = eggtray
-
 pixmapsdir = $(datadir)/pixmaps
 docdir = $(datadir)/doc/$(PACKAGE)-$(VERSION)
 appsdir = $(datadir)/applications
@@ -44,11 +42,7 @@ EXTRA_DIST = \
 	$(pkgdata_DATA) \
 	$(pixmaps_DATA) \
 	$(man_MANS) \
-	eggtrayiconmodule.so \
 	ups-monitor.desktop ups-monitor.spec ups-monitor.spec.in autogen.sh
-
-eggtrayiconmodule.so:
-	make -C $(srcdir)/eggtray
 
 install-data-hook:
 	$(mkinstalldirs) $(DESTDIR)$(appsdir)

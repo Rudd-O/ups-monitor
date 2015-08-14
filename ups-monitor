@@ -50,8 +50,6 @@ def get_version():
 
 sys.path[0] = get_shared_path()
 
-import eggtrayicon
-
 
 def read_ups_config(file):
 	f = open(file)
@@ -493,7 +491,7 @@ class UPSTrayMonitor:
 		self.app = app
 		self.sharepath = app.sharepath
 
-		self.window = eggtrayicon.create_window("ups-tray-monitor")
+		self.window = gtk.StatusIcon()
 
 		self.event_box = gtk.EventBox()
 		self.event_box.set_events(gtk.gdk.BUTTON_PRESS_MASK)

@@ -27,10 +27,5 @@ AC_SUBST(GETTEXT_PACKAGE)
 dnl AC_DEFINE_UNQUOTED(GETTEXT_PACKAGE,"$GETTEXT_PACKAGE",
 dnl		[the gettext domain])
 
-dnl ===============================================
-dnl Checks for eggtray library dependancies
-dnl ===============================================
-PKG_CHECK_MODULES(EGG, gtk+-2.0 >= 2.10.0 libgnomeui-2.0 >=  2.2.0 pygtk-2.0 >= 2.10.0)
-
 AC_CONFIG_FILES([Makefile ups-monitor.spec])
 AC_OUTPUT
