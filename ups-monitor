@@ -18,6 +18,7 @@ from string import *
 from socket import *
 import errno
 import re
+import subprocess
 
 debug = False
 
@@ -1043,8 +1044,10 @@ class UPSMonitor (gtk.glade.XML):
 		self.hide_prefs_window()
 		
 
-	def run_uri(self,uri): gnome.url_show(uri)
-
+	def run_uri(self,uri):
+            p = subprocess.Popen(["xdg-open", uri])
+            t = Thread(target=p.wait)
+            t.start()
 	
 	def open_website(self,caller = None):
 		self.run_uri("http://rudd-o.com/projects/ups-monitor")
