@@ -28,7 +28,7 @@ def debug_print(something):
 
 def get_shared_path():
 	testfile = 'version'
-	sharedirs = [".",path.join(path.dirname(sys.argv[0]),"../share/ups-monitor")]
+	sharedirs = [".",path.join(path.dirname(path.realpath(sys.argv[0])),"../share/ups-monitor")]
 	sharepath = None
 	for sharedir in sharedirs:
 		fname = path.join(path.abspath(sharedir),testfile)
