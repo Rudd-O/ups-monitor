@@ -27,15 +27,10 @@ AC_SUBST(GETTEXT_PACKAGE)
 dnl AC_DEFINE_UNQUOTED(GETTEXT_PACKAGE,"$GETTEXT_PACKAGE",
 dnl		[the gettext domain])
 
-dnl Needed to build eggtray.so lib
-dnl AC_PROG_LIBTOOL
-
 dnl ===============================================
 dnl Checks for eggtray library dependancies
 dnl ===============================================
-PKG_CHECK_MODULES(EGG, gtk+-2.0 >= 2.4.0 libgnomeui-2.0 >=  2.2.0 pygtk-2.0 >= 2.4.0)
-AC_SUBST(EGG_LIBS)
-AC_SUBST(EGG_CFLAGS)
+PKG_CHECK_MODULES(EGG, gtk+-2.0 >= 2.10.0 libgnomeui-2.0 >=  2.2.0 pygtk-2.0 >= 2.10.0)
 
-AC_CONFIG_FILES([Makefile eggtray/Makefile ups-monitor.spec])
+AC_CONFIG_FILES([Makefile ups-monitor.spec])
 AC_OUTPUT
