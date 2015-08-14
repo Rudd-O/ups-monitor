@@ -15,10 +15,6 @@ pkgdata_DATA = \
 	ups-monitor.gladep \
 	ac-icon.png \
 	bat-icon.png \
-	battery-critical.png \
-	battery-good.png \
-	battery-level.png \
-	battery-low.png \
 	load.png \
 	remaining-time.png \
 	ups-monitor.png \
