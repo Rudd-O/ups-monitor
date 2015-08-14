@@ -1,7 +1,8 @@
 Installation of UPS monitor is quite simple.
 
-If you prefer to perform a source install, just
+If you prefer to perform a source install, just run in the source directory:
 
+  test -f configure || ./autogen.sh
   ./configure --prefix=/the/desired/base/path
   make install
 
