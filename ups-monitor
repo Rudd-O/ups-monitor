@@ -211,7 +211,10 @@ class UPS:
 		self.ups_name , self.host = split(address,"@")
 		self.username = username
 		self.password = password
-		
+
+        def __str__(self):
+            return "UPS %s: %s" % (self.address, "\n   ".join([ "%s: %s" % (attr, getattr(self, attr)) for attr in dir(self) if not callable(attr) and not callable(getattr(self, attr)) ]))
+
 	def check_ups_exists(self):
 		self.poll()
 		
