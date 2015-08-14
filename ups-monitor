@@ -396,9 +396,9 @@ class UPS:
 					self.power_source = "AC"
 				elif find(value,"OB") != -1:
 					self.power_source = "BAT"
-				elif find(value,"LB") != -1:
+				if find(value,"LB") != -1:
 					self.battery_status = "LOW"
-				elif find(value,"RB") != -1:
+				if find(value,"RB") != -1:
 					self.battery_status = "REPLACE"
 				elif find(value,"BYPASS") != -1:
 					self.ups_status = "BYPASS"
