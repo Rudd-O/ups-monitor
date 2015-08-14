@@ -562,7 +562,7 @@ class UPSMonitor (gtk.glade.XML):
 		gtk.glade.XML.__init__(self,path.join(self.sharepath,'ups-monitor.glade'))
 		self.window = self.get_widget("window")
 
-		self.load_config()
+		self.config = self.load_config()
 		self.prepare_widgets()
 		self.connect_signals()
 		if self.config["visible"] is True:
@@ -689,7 +689,7 @@ class UPSMonitor (gtk.glade.XML):
 		
 		
 	def load_config(self):
-		self.config = dict()
+		config = dict()
 
 		upsaddress = None
 		username = None
@@ -728,10 +728,11 @@ class UPSMonitor (gtk.glade.XML):
 			pass
 
 		if upsaddress is not None:
-			self.config["ups"] = (upsaddress,username,password)
+			config["ups"] = (upsaddress,username,password)
 
-		self.config["visible"] = visible
-		self.config["background_monitoring_shown"] = background_monitoring_shown
+		config["visible"] = visible
+		config["background_monitoring_shown"] = background_monitoring_shown
+		return config
 
 	
 	def monitor_last_ups(self):
@@ -756,6 +757,15 @@ class UPSMonitor (gtk.glade.XML):
 			if  self.ups.get_password()  is not None:
 				string = "password = " + self.ups.get_password() + "\n"
 				f.write(string)
+		elif "ups" in self.config:
+                        string = "address = " + self.config["ups"][0] + "\n"
+                        f.write(string)
+                        if  self.config["ups"][1] is not None:
+                                string = "username = " + self.config["ups"][1] + "\n"
+                                f.write(string)
+                        if  self.config["ups"][2] is not None:
+                                string = "password = " + self.config["ups"][2] + "\n"
+                                f.write(string)
 		if self.window.get_property("visible"):
 			string = "app_visible = true" + "\n"
 		else:
