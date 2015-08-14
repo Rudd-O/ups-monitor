@@ -1033,19 +1033,6 @@ class UPSMonitor (gtk.glade.XML):
 	def open_gpl(self,caller = None):
 		self.run_uri("http://www.fsf.org/copyleft/gpl.txt")
 		
-	def save_yourself(self,*args):
-		self.save_config()
-		if args[0] == 1: self.smclient.request_phase_2()
-
-	def die(self,u=None):
-		self.quit()
-		
-	def save_complete(self,u=None):
-		return
-		
-	def shutdown_cancelled(self,u=None):
-		return		
-
 def main():
 
 	upsaddress = None
