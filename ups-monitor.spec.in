@@ -15,6 +15,7 @@ Source:         %{name}-%ver.tar.gz
 URL:            https://rudd-o.com/projects/ups-monitor
 BuildRoot:      %{_tmppath}/build-%{name}-%{ver}
 Requires:       pygtk2 pygtk2-libglade
+BuildArch:      noarch
 
 %description
 UPS monitor is a simple tool that displays UPS information in real time.
@@ -90,9 +91,9 @@ make DESTDIR=$RPM_BUILD_ROOT install
 
 %files
 %defattr(-,root,root)
-%prefix/bin/%name
-%prefix/share/applications
-%prefix/share/pixmaps/%name.png
-%prefix/share/%name
-%doc %prefix/man/man1/*
-%doc %prefix/share/doc/%name-%ver
+%{_bindir}/%name
+%{_datadir}/applications
+%{_datadir}/pixmaps/%name.png
+%{_datadir}/%name
+%doc %{_datadir}/man/man1/*
+%doc %{_datadir}/doc/%name-%ver

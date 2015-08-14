@@ -1,5 +1,7 @@
 # Process with automake to create Makefile.in
 
+AUTOMAKE_OPTIONS = foreign
+
 pixmapsdir = $(datadir)/pixmaps
 docdir = $(datadir)/doc/$(PACKAGE)-$(VERSION)
 appsdir = $(datadir)/applications
@@ -38,6 +40,7 @@ EXTRA_DIST = \
 	$(pkgdata_DATA) \
 	$(pixmaps_DATA) \
 	$(man_MANS) \
+	README.md \
 	ups-monitor.desktop ups-monitor.spec ups-monitor.spec.in autogen.sh
 
 install-data-hook:
