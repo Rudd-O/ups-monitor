@@ -2146,7 +2146,7 @@ A graphical application to monitor the status of your UPS</property>
 			  <child>
 			    <widget class="GtkLabel" id="label68">
 			      <property name="visible">True</property>
-			      <property name="label" translatable="yes">&lt;span foreground=&quot;blue&quot; underline=&quot;single&quot;&gt;dragonfear@gmail.com&lt;/span&gt;</property>
+			      <property name="label" translatable="no">&lt;span foreground=&quot;blue&quot; underline=&quot;single&quot;&gt;rudd-o@rudd-o.com&lt;/span&gt;</property>
 			      <property name="use_underline">True</property>
 			      <property name="use_markup">True</property>
 			      <property name="justify">GTK_JUSTIFY_LEFT</property>

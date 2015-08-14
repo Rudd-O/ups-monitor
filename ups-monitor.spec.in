@@ -7,16 +7,14 @@
 Summary:        An UPS monitor for the GNOME desktop
 Summary(es):	Un monitor de SAI para el escritorio GNOME
 Name:           ups-monitor
-Vendor:         Amauta
 Version:        %ver
 Release:        %rel
 License:        GPL
 Group:          System/Monitoring
 Source:         %{name}-%ver.tar.gz
-URL:            http://www.amautacorp.com/staff/Rudd-O/projects/ups-front/
+URL:            https://rudd-o.com/projects/ups-monitor
 BuildRoot:      %{_tmppath}/build-%{name}-%{ver}
-Requires:       pygtk2 pygtk2-libglade gnome-python2
-BuildArch:      i386
+Requires:       pygtk2 pygtk2-libglade
 
 %description
 UPS monitor is a simple tool that displays UPS information in real time.
