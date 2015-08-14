@@ -7,9 +7,6 @@ AM_MAINTAINER_MODE
 
 AM_PATH_PYTHON
 
-PKG_CHECK_MODULES(PREREQS, pygtk-2.0)
-PKG_CHECK_MODULES(PREREQS, gnome-python-2.0)
-
 AC_PATH_PROG(DESKTOP_FILE_INSTALL, desktop-file-install, NO)
 if test x"$DESKTOP_FILE_INSTALL" = xNO ; then
    AC_MSG_ERROR([You need to install the program desktop-file-install.
